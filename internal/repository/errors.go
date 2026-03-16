@@ -1,0 +1,8 @@
+package repository
+
+import "errors"
+
+var ErrorConflict = errors.New("conflict")
+var ErrorDoubleOperation = errors.New("double operation")
+var ErrorUserNotFound = errors.New("user not found")
+var ErrorNotContent = errors.New("data not found")
