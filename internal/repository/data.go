@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,17 +11,69 @@ import (
 	"github.com/konkovaanna23/gophkeeper/internal/model"
 )
 
-func (ds *DBStore) SaveAuthData(ctx context.Context, user string, auth model.AuthData) error {
-	metaJSON, err := json.Marshal(auth.Meta)
+func (ds *DBStore) CreateAuthData(ctx context.Context, auth *model.AuthData) (int64, error) {
+	var version int64
+
+	err := ds.database.QueryRowContext(ctx, insertAuthData,
+		auth.ID, auth.UserID, auth.Login, auth.Password, auth.Meta).
+		Scan(&version)
 	if err != nil {
-		return fmt.Errorf("failed to marshal meta: %w", err)
+		return 0, fmt.Errorf("failed to insert auth data: %w", err)
+	}
+	return version, nil
+}
+
+func (ds *DBStore) GetAuthData(ctx context.Context, userID, authID string) (*model.AuthData, error) {
+	auth := &model.AuthData{}
+	auth.ID = authID
+	auth.UserID = userID
+
+	err := ds.database.QueryRowContext(ctx, selectAuthData, authID, userID).Scan(
+		&auth.Login,
+		&auth.Password,
+		&auth.Meta,
+		&auth.Version,
+		&auth.UpdatedAt,
+	)
+	if err == sql.ErrNoRows {
+		return nil, ErrorNotContent
+	}
+	return auth, err
+}
+
+func (ds *DBStore) UpdateAuthData(ctx context.Context, auth *model.AuthData, expectedVersion int64) (int64, error) {
+	var newVersion int64
+
+	err := ds.database.QueryRowContext(ctx, updateAuthData,
+		auth.Login, auth.Password, auth.Meta,
+		auth.ID, auth.UserID, expectedVersion,
+	).Scan(&newVersion)
+
+	if err == sql.ErrNoRows {
+		return 0, ErrorVersionConflict
+	}
+	if err != nil {
+		return 0, fmt.Errorf("failed to update auth data: %w", err)
 	}
 
-	_, err = ds.database.ExecContext(ctx, insertAuthData,
-		user, auth.Site, auth.Login, auth.Password, metaJSON)
+	return newVersion, nil
+}
+
+func (ds *DBStore) DeleteAuthData(ctx context.Context, userID, authID string, expectedVersion int64) error {
+	res, err := ds.database.ExecContext(ctx, deleteAuthData,
+		authID, userID, expectedVersion,
+	)
 	if err != nil {
-		return fmt.Errorf("failed to insert auth data: %w", err)
+		return fmt.Errorf("failed to delete auth data: %w", err)
 	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to delete auth data: %w", err)
+	}
+	if rows == 0 {
+		return ErrorVersionConflict
+	}
+
 	return nil
 }
 
@@ -64,42 +117,6 @@ func (ds *DBStore) SaveBankCardData(ctx context.Context, user string, bankCard m
 		return fmt.Errorf("failed to insert bank card data: %w", err)
 	}
 	return nil
-}
-
-func (ds *DBStore) GetAuthDataList(ctx context.Context, user, site string) ([]*model.AuthData, error) {
-	rows, err := ds.database.QueryContext(ctx, selectAuthData, user, site)
-	if err != nil {
-		return nil, fmt.Errorf("failed to query auth data: %w", err)
-	}
-	defer rows.Close()
-
-	var result []*model.AuthData
-
-	for rows.Next() {
-		var data model.AuthData
-		var metaJSON []byte
-
-		err := rows.Scan(&data.Site, &data.Login, &data.Password, &metaJSON)
-		if err != nil {
-			return nil, fmt.Errorf("failed to scan auth data row: %w", err)
-		}
-
-		if len(metaJSON) > 0 {
-			if err := json.Unmarshal(metaJSON, &data.Meta); err != nil {
-				return nil, fmt.Errorf("failed to unmarshal meta: %w", err)
-			}
-		} else {
-			data.Meta = map[string]string{} // или оставить nil, зависит от модели
-		}
-
-		result = append(result, &data)
-	}
-
-	if err = rows.Err(); err != nil {
-		return nil, fmt.Errorf("error during row iteration: %w", err)
-	}
-
-	return result, nil
 }
 
 func (ds *DBStore) GetFileChunk(ctx context.Context, user, fileName string, chunkNum int) (*model.FileChunk, error) {

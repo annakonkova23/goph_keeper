@@ -2,15 +2,15 @@ package main
 
 import (
 	"context"
+	"github.com/konkovaanna23/gophkeeper/internal/config"
+	"github.com/konkovaanna23/gophkeeper/internal/config/db"
+	"github.com/konkovaanna23/gophkeeper/internal/service"
+	"go.uber.org/zap"
 	"log"
 	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"syscall"
-
-	"github.com/konkovaanna23/gophkeeper/internal/config"
-	"github.com/konkovaanna23/gophkeeper/internal/config/db"
-	"go.uber.org/zap"
 )
 
 var buildVersion string
@@ -48,7 +48,8 @@ func main() {
 			//database = nil
 		}
 	}
-
+	_ = service.NewStorageService(nil)
+	_ = service.NewAuthServer(nil, nil)
 	/*converter := service.NewConverter(ctx, cfg.URLforShort, cfg.FilePath, database, cfg.BufferSize, cfg.BatchSize, cfg.TimeFlushDel)
 	server := handler.NewServer(cfg.URLserver, converter, cfg.Key, cfg.AuditFilePath, cfg.AuditURL, cfg.EnableHTTPS, cfg.TrustedSubnet)
 

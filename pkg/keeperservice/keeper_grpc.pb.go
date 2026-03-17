@@ -28,7 +28,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AuthServiceClient interface {
-	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 }
 
@@ -40,9 +40,9 @@ func NewAuthServiceClient(cc grpc.ClientConnInterface) AuthServiceClient {
 	return &authServiceClient{cc}
 }
 
-func (c *authServiceClient) Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *authServiceClient) Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(emptypb.Empty)
+	out := new(RegisterResponse)
 	err := c.cc.Invoke(ctx, AuthService_Register_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -64,7 +64,7 @@ func (c *authServiceClient) Login(ctx context.Context, in *LoginRequest, opts ..
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility.
 type AuthServiceServer interface {
-	Register(context.Context, *RegisterRequest) (*emptypb.Empty, error)
+	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
@@ -76,7 +76,7 @@ type AuthServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedAuthServiceServer struct{}
 
-func (UnimplementedAuthServiceServer) Register(context.Context, *RegisterRequest) (*emptypb.Empty, error) {
+func (UnimplementedAuthServiceServer) Register(context.Context, *RegisterRequest) (*RegisterResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Register not implemented")
 }
 func (UnimplementedAuthServiceServer) Login(context.Context, *LoginRequest) (*LoginResponse, error) {
@@ -160,11 +160,13 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	StorageService_SetAuthInfo_FullMethodName        = "/api.StorageService/SetAuthInfo"
+	StorageService_CreateAuthInfo_FullMethodName     = "/api.StorageService/CreateAuthInfo"
+	StorageService_GetAuthInfo_FullMethodName        = "/api.StorageService/GetAuthInfo"
+	StorageService_UpdateAuthInfo_FullMethodName     = "/api.StorageService/UpdateAuthInfo"
+	StorageService_DeleteAuthInfo_FullMethodName     = "/api.StorageService/DeleteAuthInfo"
 	StorageService_SetTextInfo_FullMethodName        = "/api.StorageService/SetTextInfo"
 	StorageService_SetFileChunkInfo_FullMethodName   = "/api.StorageService/SetFileChunkInfo"
 	StorageService_SetBankCardDetails_FullMethodName = "/api.StorageService/SetBankCardDetails"
-	StorageService_GetAuthInfo_FullMethodName        = "/api.StorageService/GetAuthInfo"
 	StorageService_GetTextInfo_FullMethodName        = "/api.StorageService/GetTextInfo"
 	StorageService_GetFileChunkInfo_FullMethodName   = "/api.StorageService/GetFileChunkInfo"
 	StorageService_GetBankCardDetails_FullMethodName = "/api.StorageService/GetBankCardDetails"
@@ -174,11 +176,13 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type StorageServiceClient interface {
-	SetAuthInfo(ctx context.Context, in *AuthInfo, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	CreateAuthInfo(ctx context.Context, in *CreateAuthInfoRequest, opts ...grpc.CallOption) (*CreateAuthInfoResponse, error)
+	GetAuthInfo(ctx context.Context, in *GetAuthInfoRequest, opts ...grpc.CallOption) (*GetAuthInfoResponse, error)
+	UpdateAuthInfo(ctx context.Context, in *UpdateAuthInfoRequest, opts ...grpc.CallOption) (*UpdateAuthInfoResponse, error)
+	DeleteAuthInfo(ctx context.Context, in *DeleteAuthInfoRequest, opts ...grpc.CallOption) (*DeleteAuthInfoResponse, error)
 	SetTextInfo(ctx context.Context, in *TextInfo, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	SetFileChunkInfo(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[FileChunkInfo, emptypb.Empty], error)
 	SetBankCardDetails(ctx context.Context, in *BankCardDetails, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	GetAuthInfo(ctx context.Context, in *RequestSite, opts ...grpc.CallOption) (*AuthInfoList, error)
 	GetTextInfo(ctx context.Context, in *RequestTitle, opts ...grpc.CallOption) (*TextInfoList, error)
 	GetFileChunkInfo(ctx context.Context, in *RequestFileName, opts ...grpc.CallOption) (grpc.ServerStreamingClient[FileChunkInfo], error)
 	GetBankCardDetails(ctx context.Context, in *RequestCardNumber, opts ...grpc.CallOption) (*BankCardDetailsList, error)
@@ -192,10 +196,40 @@ func NewStorageServiceClient(cc grpc.ClientConnInterface) StorageServiceClient {
 	return &storageServiceClient{cc}
 }
 
-func (c *storageServiceClient) SetAuthInfo(ctx context.Context, in *AuthInfo, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *storageServiceClient) CreateAuthInfo(ctx context.Context, in *CreateAuthInfoRequest, opts ...grpc.CallOption) (*CreateAuthInfoResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, StorageService_SetAuthInfo_FullMethodName, in, out, cOpts...)
+	out := new(CreateAuthInfoResponse)
+	err := c.cc.Invoke(ctx, StorageService_CreateAuthInfo_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *storageServiceClient) GetAuthInfo(ctx context.Context, in *GetAuthInfoRequest, opts ...grpc.CallOption) (*GetAuthInfoResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAuthInfoResponse)
+	err := c.cc.Invoke(ctx, StorageService_GetAuthInfo_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *storageServiceClient) UpdateAuthInfo(ctx context.Context, in *UpdateAuthInfoRequest, opts ...grpc.CallOption) (*UpdateAuthInfoResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateAuthInfoResponse)
+	err := c.cc.Invoke(ctx, StorageService_UpdateAuthInfo_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *storageServiceClient) DeleteAuthInfo(ctx context.Context, in *DeleteAuthInfoRequest, opts ...grpc.CallOption) (*DeleteAuthInfoResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteAuthInfoResponse)
+	err := c.cc.Invoke(ctx, StorageService_DeleteAuthInfo_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -229,16 +263,6 @@ func (c *storageServiceClient) SetBankCardDetails(ctx context.Context, in *BankC
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, StorageService_SetBankCardDetails_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *storageServiceClient) GetAuthInfo(ctx context.Context, in *RequestSite, opts ...grpc.CallOption) (*AuthInfoList, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AuthInfoList)
-	err := c.cc.Invoke(ctx, StorageService_GetAuthInfo_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -288,11 +312,13 @@ func (c *storageServiceClient) GetBankCardDetails(ctx context.Context, in *Reque
 // All implementations must embed UnimplementedStorageServiceServer
 // for forward compatibility.
 type StorageServiceServer interface {
-	SetAuthInfo(context.Context, *AuthInfo) (*emptypb.Empty, error)
+	CreateAuthInfo(context.Context, *CreateAuthInfoRequest) (*CreateAuthInfoResponse, error)
+	GetAuthInfo(context.Context, *GetAuthInfoRequest) (*GetAuthInfoResponse, error)
+	UpdateAuthInfo(context.Context, *UpdateAuthInfoRequest) (*UpdateAuthInfoResponse, error)
+	DeleteAuthInfo(context.Context, *DeleteAuthInfoRequest) (*DeleteAuthInfoResponse, error)
 	SetTextInfo(context.Context, *TextInfo) (*emptypb.Empty, error)
 	SetFileChunkInfo(grpc.ClientStreamingServer[FileChunkInfo, emptypb.Empty]) error
 	SetBankCardDetails(context.Context, *BankCardDetails) (*emptypb.Empty, error)
-	GetAuthInfo(context.Context, *RequestSite) (*AuthInfoList, error)
 	GetTextInfo(context.Context, *RequestTitle) (*TextInfoList, error)
 	GetFileChunkInfo(*RequestFileName, grpc.ServerStreamingServer[FileChunkInfo]) error
 	GetBankCardDetails(context.Context, *RequestCardNumber) (*BankCardDetailsList, error)
@@ -306,8 +332,17 @@ type StorageServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedStorageServiceServer struct{}
 
-func (UnimplementedStorageServiceServer) SetAuthInfo(context.Context, *AuthInfo) (*emptypb.Empty, error) {
-	return nil, status.Error(codes.Unimplemented, "method SetAuthInfo not implemented")
+func (UnimplementedStorageServiceServer) CreateAuthInfo(context.Context, *CreateAuthInfoRequest) (*CreateAuthInfoResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateAuthInfo not implemented")
+}
+func (UnimplementedStorageServiceServer) GetAuthInfo(context.Context, *GetAuthInfoRequest) (*GetAuthInfoResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetAuthInfo not implemented")
+}
+func (UnimplementedStorageServiceServer) UpdateAuthInfo(context.Context, *UpdateAuthInfoRequest) (*UpdateAuthInfoResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateAuthInfo not implemented")
+}
+func (UnimplementedStorageServiceServer) DeleteAuthInfo(context.Context, *DeleteAuthInfoRequest) (*DeleteAuthInfoResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteAuthInfo not implemented")
 }
 func (UnimplementedStorageServiceServer) SetTextInfo(context.Context, *TextInfo) (*emptypb.Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method SetTextInfo not implemented")
@@ -317,9 +352,6 @@ func (UnimplementedStorageServiceServer) SetFileChunkInfo(grpc.ClientStreamingSe
 }
 func (UnimplementedStorageServiceServer) SetBankCardDetails(context.Context, *BankCardDetails) (*emptypb.Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method SetBankCardDetails not implemented")
-}
-func (UnimplementedStorageServiceServer) GetAuthInfo(context.Context, *RequestSite) (*AuthInfoList, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetAuthInfo not implemented")
 }
 func (UnimplementedStorageServiceServer) GetTextInfo(context.Context, *RequestTitle) (*TextInfoList, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetTextInfo not implemented")
@@ -351,20 +383,74 @@ func RegisterStorageServiceServer(s grpc.ServiceRegistrar, srv StorageServiceSer
 	s.RegisterService(&StorageService_ServiceDesc, srv)
 }
 
-func _StorageService_SetAuthInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AuthInfo)
+func _StorageService_CreateAuthInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateAuthInfoRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(StorageServiceServer).SetAuthInfo(ctx, in)
+		return srv.(StorageServiceServer).CreateAuthInfo(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: StorageService_SetAuthInfo_FullMethodName,
+		FullMethod: StorageService_CreateAuthInfo_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(StorageServiceServer).SetAuthInfo(ctx, req.(*AuthInfo))
+		return srv.(StorageServiceServer).CreateAuthInfo(ctx, req.(*CreateAuthInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StorageService_GetAuthInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAuthInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StorageServiceServer).GetAuthInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StorageService_GetAuthInfo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StorageServiceServer).GetAuthInfo(ctx, req.(*GetAuthInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StorageService_UpdateAuthInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateAuthInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StorageServiceServer).UpdateAuthInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StorageService_UpdateAuthInfo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StorageServiceServer).UpdateAuthInfo(ctx, req.(*UpdateAuthInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StorageService_DeleteAuthInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteAuthInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StorageServiceServer).DeleteAuthInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StorageService_DeleteAuthInfo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StorageServiceServer).DeleteAuthInfo(ctx, req.(*DeleteAuthInfoRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -408,24 +494,6 @@ func _StorageService_SetBankCardDetails_Handler(srv interface{}, ctx context.Con
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(StorageServiceServer).SetBankCardDetails(ctx, req.(*BankCardDetails))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _StorageService_GetAuthInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RequestSite)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(StorageServiceServer).GetAuthInfo(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: StorageService_GetAuthInfo_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(StorageServiceServer).GetAuthInfo(ctx, req.(*RequestSite))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -485,8 +553,20 @@ var StorageService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*StorageServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "SetAuthInfo",
-			Handler:    _StorageService_SetAuthInfo_Handler,
+			MethodName: "CreateAuthInfo",
+			Handler:    _StorageService_CreateAuthInfo_Handler,
+		},
+		{
+			MethodName: "GetAuthInfo",
+			Handler:    _StorageService_GetAuthInfo_Handler,
+		},
+		{
+			MethodName: "UpdateAuthInfo",
+			Handler:    _StorageService_UpdateAuthInfo_Handler,
+		},
+		{
+			MethodName: "DeleteAuthInfo",
+			Handler:    _StorageService_DeleteAuthInfo_Handler,
 		},
 		{
 			MethodName: "SetTextInfo",
@@ -495,10 +575,6 @@ var StorageService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetBankCardDetails",
 			Handler:    _StorageService_SetBankCardDetails_Handler,
-		},
-		{
-			MethodName: "GetAuthInfo",
-			Handler:    _StorageService_GetAuthInfo_Handler,
 		},
 		{
 			MethodName: "GetTextInfo",

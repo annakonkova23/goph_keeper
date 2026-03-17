@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
-func (ds *DBStore) CreateUser(ctx context.Context, login, password string) error {
+func (ds *DBStore) CreateUser(ctx context.Context, id, login, password string) error {
 
 	_, err := ds.database.ExecContext(ctx, insertUser, login, password)
 	if err != nil {
@@ -25,9 +25,9 @@ func (ds *DBStore) CreateUser(ctx context.Context, login, password string) error
 }
 
 func (ds *DBStore) GetUserByLogin(ctx context.Context, loginSrc string) (string, string, error) {
-	var login, password string
+	var id, password string
 
-	err := ds.database.QueryRowxContext(ctx, selectUserLogin, loginSrc).Scan(&login, &password)
+	err := ds.database.QueryRowxContext(ctx, selectUserLogin, loginSrc).Scan(&id, &password)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return "", "", ErrorUserNotFound
@@ -35,5 +35,5 @@ func (ds *DBStore) GetUserByLogin(ctx context.Context, loginSrc string) (string,
 		return "", "", fmt.Errorf("database error: %w", err)
 	}
 
-	return login, password, nil
+	return id, password, nil
 }

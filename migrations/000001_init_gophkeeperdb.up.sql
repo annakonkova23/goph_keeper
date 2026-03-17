@@ -4,21 +4,28 @@ CREATE SCHEMA IF NOT EXISTS storage AUTHORIZATION current_user;
 GRANT USAGE, CREATE ON SCHEMA storage TO current_user;
 
 CREATE TABLE IF NOT EXISTS storage.users (
-    login VARCHAR(1000) PRIMARY KEY NOT NULL,
+    id UUID PRIMARY KEY,
+    login VARCHAR(1000) NOT NULL UNIQUE,,
     password VARCHAR(1000) NOT NULL,
-    created_at TIMESTAMP DEFAULT NOW()
+    created_at TIMESTAMPTZ DEFAULT NOW()
  );
 
+
 CREATE TABLE IF NOT EXISTS storage.auth_data (
-    user_login VARCHAR(1000),
-    site VARCHAR(1000),
+    id UUID PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     login VARCHAR(1000) NOT NULL,
-    password VARCHAR(1000) NOT NULL,
-    meta JSON,
-    created_at TIMESTAMP DEFAULT NOW(),
-    primary key (user_login, site),
-    constraint uq_auth_data unique(user_login, site)
+    password BYTEA NOT NULL,
+    meta JSONB NOT NULL DEFAULT '{}'::jsonb,
+    version BIGINT NOT NULL DEFAULT 1,
+    deleted_at TIMESTAMPTZ NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 )
+
+CREATE INDEX idx_auth_data_user_id ON storage.auth_data(user_id);
+CREATE INDEX idx_auth_data_alive ON storage.auth_data(user_id, id) WHERE deleted_at IS NULL;
+
 
 CREATE TABLE storage.file_data (
     user_login VARCHAR(1000),

@@ -5,23 +5,8 @@ import (
 
 	"github.com/konkovaanna23/gophkeeper/internal/model"
 
-	"github.com/konkovaanna23/gophkeeper/internal/crypto"
 	pb "github.com/konkovaanna23/gophkeeper/pkg/keeperservice"
 )
-
-func ConvertAuthDataPBToModel(auth *pb.AuthInfo) (*model.AuthData, error) {
-
-	passwordEnc, err := crypto.Encrypt([]byte(auth.GetPassword()), []byte("key"))
-	if err != nil {
-		return nil, err
-	}
-	return &model.AuthData{
-		Site:     auth.GetSite(),
-		Login:    auth.GetLogin(),
-		Password: string(passwordEnc),
-		Meta:     auth.GetMeta(),
-	}, nil
-}
 
 func ConvertTextDataPBToModel(text *pb.TextInfo) *model.TextData {
 
@@ -56,21 +41,6 @@ func ConvertBankCardPBToModel(card *pb.BankCardDetails) *model.BankCardData {
 		Owner:           card.Owner,
 		Meta:            card.Meta,
 	}
-}
-
-// ConvertAuthDataModelToPB converts model.AuthData to pb.AuthInfo
-func ConvertAuthDataModelToPB(auth *model.AuthData) (*pb.AuthInfo, error) {
-
-	passwordDec, err := crypto.Decrypt([]byte(auth.Password), []byte("key"))
-	if err != nil {
-		return nil, err
-	}
-	return &pb.AuthInfo{
-		Site:     auth.Site,
-		Login:    auth.Login,
-		Meta:     auth.Meta,
-		Password: string(passwordDec),
-	}, nil
 }
 
 // ConvertTextDataModelToPB converts model.TextData to pb.TextInfo/

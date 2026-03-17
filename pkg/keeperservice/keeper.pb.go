@@ -10,6 +10,7 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -216,10 +217,9 @@ func (x *LoginResponse) GetAccessToken() string {
 
 type AuthInfo struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Site          string                 `protobuf:"bytes,1,opt,name=site,proto3" json:"site,omitempty"`
-	Login         string                 `protobuf:"bytes,2,opt,name=login,proto3" json:"login,omitempty"`
-	Password      string                 `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`
-	Meta          map[string]string      `protobuf:"bytes,4,rep,name=meta,proto3" json:"meta,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Login         string                 `protobuf:"bytes,1,opt,name=login,proto3" json:"login,omitempty"`
+	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+	Meta          map[string]string      `protobuf:"bytes,3,rep,name=meta,proto3" json:"meta,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -254,13 +254,6 @@ func (*AuthInfo) Descriptor() ([]byte, []int) {
 	return file_keeper_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *AuthInfo) GetSite() string {
-	if x != nil {
-		return x.Site
-	}
-	return ""
-}
-
 func (x *AuthInfo) GetLogin() string {
 	if x != nil {
 		return x.Login
@@ -282,27 +275,30 @@ func (x *AuthInfo) GetMeta() map[string]string {
 	return nil
 }
 
-type AuthInfoList struct {
+type StoredAuthInfo struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	List          []*AuthInfo            `protobuf:"bytes,1,rep,name=list,proto3" json:"list,omitempty"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Data          *AuthInfo              `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`
+	Version       int64                  `protobuf:"varint,3,opt,name=version,proto3" json:"version,omitempty"`
+	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *AuthInfoList) Reset() {
-	*x = AuthInfoList{}
+func (x *StoredAuthInfo) Reset() {
+	*x = StoredAuthInfo{}
 	mi := &file_keeper_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *AuthInfoList) String() string {
+func (x *StoredAuthInfo) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*AuthInfoList) ProtoMessage() {}
+func (*StoredAuthInfo) ProtoMessage() {}
 
-func (x *AuthInfoList) ProtoReflect() protoreflect.Message {
+func (x *StoredAuthInfo) ProtoReflect() protoreflect.Message {
 	mi := &file_keeper_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -314,16 +310,413 @@ func (x *AuthInfoList) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use AuthInfoList.ProtoReflect.Descriptor instead.
-func (*AuthInfoList) Descriptor() ([]byte, []int) {
+// Deprecated: Use StoredAuthInfo.ProtoReflect.Descriptor instead.
+func (*StoredAuthInfo) Descriptor() ([]byte, []int) {
 	return file_keeper_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *AuthInfoList) GetList() []*AuthInfo {
+func (x *StoredAuthInfo) GetId() string {
 	if x != nil {
-		return x.List
+		return x.Id
+	}
+	return ""
+}
+
+func (x *StoredAuthInfo) GetData() *AuthInfo {
+	if x != nil {
+		return x.Data
 	}
 	return nil
+}
+
+func (x *StoredAuthInfo) GetVersion() int64 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *StoredAuthInfo) GetUpdatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return nil
+}
+
+type CreateAuthInfoRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Data          *AuthInfo              `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateAuthInfoRequest) Reset() {
+	*x = CreateAuthInfoRequest{}
+	mi := &file_keeper_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateAuthInfoRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateAuthInfoRequest) ProtoMessage() {}
+
+func (x *CreateAuthInfoRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_keeper_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateAuthInfoRequest.ProtoReflect.Descriptor instead.
+func (*CreateAuthInfoRequest) Descriptor() ([]byte, []int) {
+	return file_keeper_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *CreateAuthInfoRequest) GetData() *AuthInfo {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+type CreateAuthInfoResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Version       int64                  `protobuf:"varint,2,opt,name=version,proto3" json:"version,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateAuthInfoResponse) Reset() {
+	*x = CreateAuthInfoResponse{}
+	mi := &file_keeper_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateAuthInfoResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateAuthInfoResponse) ProtoMessage() {}
+
+func (x *CreateAuthInfoResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_keeper_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateAuthInfoResponse.ProtoReflect.Descriptor instead.
+func (*CreateAuthInfoResponse) Descriptor() ([]byte, []int) {
+	return file_keeper_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *CreateAuthInfoResponse) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *CreateAuthInfoResponse) GetVersion() int64 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+type GetAuthInfoRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAuthInfoRequest) Reset() {
+	*x = GetAuthInfoRequest{}
+	mi := &file_keeper_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAuthInfoRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAuthInfoRequest) ProtoMessage() {}
+
+func (x *GetAuthInfoRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_keeper_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAuthInfoRequest.ProtoReflect.Descriptor instead.
+func (*GetAuthInfoRequest) Descriptor() ([]byte, []int) {
+	return file_keeper_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *GetAuthInfoRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type GetAuthInfoResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Item          *StoredAuthInfo        `protobuf:"bytes,1,opt,name=item,proto3" json:"item,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAuthInfoResponse) Reset() {
+	*x = GetAuthInfoResponse{}
+	mi := &file_keeper_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAuthInfoResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAuthInfoResponse) ProtoMessage() {}
+
+func (x *GetAuthInfoResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_keeper_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAuthInfoResponse.ProtoReflect.Descriptor instead.
+func (*GetAuthInfoResponse) Descriptor() ([]byte, []int) {
+	return file_keeper_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *GetAuthInfoResponse) GetItem() *StoredAuthInfo {
+	if x != nil {
+		return x.Item
+	}
+	return nil
+}
+
+type UpdateAuthInfoRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Data          *AuthInfo              `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`
+	Version       int64                  `protobuf:"varint,3,opt,name=version,proto3" json:"version,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateAuthInfoRequest) Reset() {
+	*x = UpdateAuthInfoRequest{}
+	mi := &file_keeper_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateAuthInfoRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateAuthInfoRequest) ProtoMessage() {}
+
+func (x *UpdateAuthInfoRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_keeper_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateAuthInfoRequest.ProtoReflect.Descriptor instead.
+func (*UpdateAuthInfoRequest) Descriptor() ([]byte, []int) {
+	return file_keeper_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *UpdateAuthInfoRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *UpdateAuthInfoRequest) GetData() *AuthInfo {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *UpdateAuthInfoRequest) GetVersion() int64 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+type UpdateAuthInfoResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	NewVersion    int64                  `protobuf:"varint,1,opt,name=new_version,json=newVersion,proto3" json:"new_version,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateAuthInfoResponse) Reset() {
+	*x = UpdateAuthInfoResponse{}
+	mi := &file_keeper_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateAuthInfoResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateAuthInfoResponse) ProtoMessage() {}
+
+func (x *UpdateAuthInfoResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_keeper_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateAuthInfoResponse.ProtoReflect.Descriptor instead.
+func (*UpdateAuthInfoResponse) Descriptor() ([]byte, []int) {
+	return file_keeper_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *UpdateAuthInfoResponse) GetNewVersion() int64 {
+	if x != nil {
+		return x.NewVersion
+	}
+	return 0
+}
+
+type DeleteAuthInfoRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Version       int64                  `protobuf:"varint,2,opt,name=version,proto3" json:"version,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteAuthInfoRequest) Reset() {
+	*x = DeleteAuthInfoRequest{}
+	mi := &file_keeper_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteAuthInfoRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteAuthInfoRequest) ProtoMessage() {}
+
+func (x *DeleteAuthInfoRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_keeper_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteAuthInfoRequest.ProtoReflect.Descriptor instead.
+func (*DeleteAuthInfoRequest) Descriptor() ([]byte, []int) {
+	return file_keeper_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *DeleteAuthInfoRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *DeleteAuthInfoRequest) GetVersion() int64 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+type DeleteAuthInfoResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteAuthInfoResponse) Reset() {
+	*x = DeleteAuthInfoResponse{}
+	mi := &file_keeper_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteAuthInfoResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteAuthInfoResponse) ProtoMessage() {}
+
+func (x *DeleteAuthInfoResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_keeper_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteAuthInfoResponse.ProtoReflect.Descriptor instead.
+func (*DeleteAuthInfoResponse) Descriptor() ([]byte, []int) {
+	return file_keeper_proto_rawDescGZIP(), []int{13}
 }
 
 type TextInfo struct {
@@ -337,7 +730,7 @@ type TextInfo struct {
 
 func (x *TextInfo) Reset() {
 	*x = TextInfo{}
-	mi := &file_keeper_proto_msgTypes[6]
+	mi := &file_keeper_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -349,7 +742,7 @@ func (x *TextInfo) String() string {
 func (*TextInfo) ProtoMessage() {}
 
 func (x *TextInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_keeper_proto_msgTypes[6]
+	mi := &file_keeper_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -362,7 +755,7 @@ func (x *TextInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TextInfo.ProtoReflect.Descriptor instead.
 func (*TextInfo) Descriptor() ([]byte, []int) {
-	return file_keeper_proto_rawDescGZIP(), []int{6}
+	return file_keeper_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *TextInfo) GetTitle() string {
@@ -395,7 +788,7 @@ type TextInfoList struct {
 
 func (x *TextInfoList) Reset() {
 	*x = TextInfoList{}
-	mi := &file_keeper_proto_msgTypes[7]
+	mi := &file_keeper_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -407,7 +800,7 @@ func (x *TextInfoList) String() string {
 func (*TextInfoList) ProtoMessage() {}
 
 func (x *TextInfoList) ProtoReflect() protoreflect.Message {
-	mi := &file_keeper_proto_msgTypes[7]
+	mi := &file_keeper_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -420,7 +813,7 @@ func (x *TextInfoList) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TextInfoList.ProtoReflect.Descriptor instead.
 func (*TextInfoList) Descriptor() ([]byte, []int) {
-	return file_keeper_proto_rawDescGZIP(), []int{7}
+	return file_keeper_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *TextInfoList) GetList() []*TextInfo {
@@ -441,7 +834,7 @@ type FileChunkInfo struct {
 
 func (x *FileChunkInfo) Reset() {
 	*x = FileChunkInfo{}
-	mi := &file_keeper_proto_msgTypes[8]
+	mi := &file_keeper_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -453,7 +846,7 @@ func (x *FileChunkInfo) String() string {
 func (*FileChunkInfo) ProtoMessage() {}
 
 func (x *FileChunkInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_keeper_proto_msgTypes[8]
+	mi := &file_keeper_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -466,7 +859,7 @@ func (x *FileChunkInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FileChunkInfo.ProtoReflect.Descriptor instead.
 func (*FileChunkInfo) Descriptor() ([]byte, []int) {
-	return file_keeper_proto_rawDescGZIP(), []int{8}
+	return file_keeper_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *FileChunkInfo) GetFileName() string {
@@ -503,7 +896,7 @@ type BankCardDetails struct {
 
 func (x *BankCardDetails) Reset() {
 	*x = BankCardDetails{}
-	mi := &file_keeper_proto_msgTypes[9]
+	mi := &file_keeper_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -515,7 +908,7 @@ func (x *BankCardDetails) String() string {
 func (*BankCardDetails) ProtoMessage() {}
 
 func (x *BankCardDetails) ProtoReflect() protoreflect.Message {
-	mi := &file_keeper_proto_msgTypes[9]
+	mi := &file_keeper_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -528,7 +921,7 @@ func (x *BankCardDetails) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BankCardDetails.ProtoReflect.Descriptor instead.
 func (*BankCardDetails) Descriptor() ([]byte, []int) {
-	return file_keeper_proto_rawDescGZIP(), []int{9}
+	return file_keeper_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *BankCardDetails) GetNumber() string {
@@ -575,7 +968,7 @@ type BankCardDetailsList struct {
 
 func (x *BankCardDetailsList) Reset() {
 	*x = BankCardDetailsList{}
-	mi := &file_keeper_proto_msgTypes[10]
+	mi := &file_keeper_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -587,7 +980,7 @@ func (x *BankCardDetailsList) String() string {
 func (*BankCardDetailsList) ProtoMessage() {}
 
 func (x *BankCardDetailsList) ProtoReflect() protoreflect.Message {
-	mi := &file_keeper_proto_msgTypes[10]
+	mi := &file_keeper_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -600,7 +993,7 @@ func (x *BankCardDetailsList) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BankCardDetailsList.ProtoReflect.Descriptor instead.
 func (*BankCardDetailsList) Descriptor() ([]byte, []int) {
-	return file_keeper_proto_rawDescGZIP(), []int{10}
+	return file_keeper_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *BankCardDetailsList) GetList() []*BankCardDetails {
@@ -619,7 +1012,7 @@ type RequestSite struct {
 
 func (x *RequestSite) Reset() {
 	*x = RequestSite{}
-	mi := &file_keeper_proto_msgTypes[11]
+	mi := &file_keeper_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -631,7 +1024,7 @@ func (x *RequestSite) String() string {
 func (*RequestSite) ProtoMessage() {}
 
 func (x *RequestSite) ProtoReflect() protoreflect.Message {
-	mi := &file_keeper_proto_msgTypes[11]
+	mi := &file_keeper_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -644,7 +1037,7 @@ func (x *RequestSite) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RequestSite.ProtoReflect.Descriptor instead.
 func (*RequestSite) Descriptor() ([]byte, []int) {
-	return file_keeper_proto_rawDescGZIP(), []int{11}
+	return file_keeper_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *RequestSite) GetSite() string {
@@ -663,7 +1056,7 @@ type RequestTitle struct {
 
 func (x *RequestTitle) Reset() {
 	*x = RequestTitle{}
-	mi := &file_keeper_proto_msgTypes[12]
+	mi := &file_keeper_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -675,7 +1068,7 @@ func (x *RequestTitle) String() string {
 func (*RequestTitle) ProtoMessage() {}
 
 func (x *RequestTitle) ProtoReflect() protoreflect.Message {
-	mi := &file_keeper_proto_msgTypes[12]
+	mi := &file_keeper_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -688,7 +1081,7 @@ func (x *RequestTitle) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RequestTitle.ProtoReflect.Descriptor instead.
 func (*RequestTitle) Descriptor() ([]byte, []int) {
-	return file_keeper_proto_rawDescGZIP(), []int{12}
+	return file_keeper_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *RequestTitle) GetTitle() string {
@@ -707,7 +1100,7 @@ type RequestFileName struct {
 
 func (x *RequestFileName) Reset() {
 	*x = RequestFileName{}
-	mi := &file_keeper_proto_msgTypes[13]
+	mi := &file_keeper_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -719,7 +1112,7 @@ func (x *RequestFileName) String() string {
 func (*RequestFileName) ProtoMessage() {}
 
 func (x *RequestFileName) ProtoReflect() protoreflect.Message {
-	mi := &file_keeper_proto_msgTypes[13]
+	mi := &file_keeper_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -732,7 +1125,7 @@ func (x *RequestFileName) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RequestFileName.ProtoReflect.Descriptor instead.
 func (*RequestFileName) Descriptor() ([]byte, []int) {
-	return file_keeper_proto_rawDescGZIP(), []int{13}
+	return file_keeper_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *RequestFileName) GetFileName() string {
@@ -751,7 +1144,7 @@ type RequestCardNumber struct {
 
 func (x *RequestCardNumber) Reset() {
 	*x = RequestCardNumber{}
-	mi := &file_keeper_proto_msgTypes[14]
+	mi := &file_keeper_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -763,7 +1156,7 @@ func (x *RequestCardNumber) String() string {
 func (*RequestCardNumber) ProtoMessage() {}
 
 func (x *RequestCardNumber) ProtoReflect() protoreflect.Message {
-	mi := &file_keeper_proto_msgTypes[14]
+	mi := &file_keeper_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -776,7 +1169,7 @@ func (x *RequestCardNumber) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RequestCardNumber.ProtoReflect.Descriptor instead.
 func (*RequestCardNumber) Descriptor() ([]byte, []int) {
-	return file_keeper_proto_rawDescGZIP(), []int{14}
+	return file_keeper_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *RequestCardNumber) GetLast4() uint32 {
@@ -790,7 +1183,7 @@ var File_keeper_proto protoreflect.FileDescriptor
 
 const file_keeper_proto_rawDesc = "" +
 	"\n" +
-	"\fkeeper.proto\x12\x03api\x1a\x1bgoogle/protobuf/empty.proto\"C\n" +
+	"\fkeeper.proto\x12\x03api\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"C\n" +
 	"\x0fRegisterRequest\x12\x14\n" +
 	"\x05login\x18\x01 \x01(\tR\x05login\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\"+\n" +
@@ -800,17 +1193,40 @@ const file_keeper_proto_rawDesc = "" +
 	"\x05login\x18\x01 \x01(\tR\x05login\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\"2\n" +
 	"\rLoginResponse\x12!\n" +
-	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\"\xb6\x01\n" +
-	"\bAuthInfo\x12\x12\n" +
-	"\x04site\x18\x01 \x01(\tR\x04site\x12\x14\n" +
-	"\x05login\x18\x02 \x01(\tR\x05login\x12\x1a\n" +
-	"\bpassword\x18\x03 \x01(\tR\bpassword\x12+\n" +
-	"\x04meta\x18\x04 \x03(\v2\x17.api.AuthInfo.MetaEntryR\x04meta\x1a7\n" +
+	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\"\xa2\x01\n" +
+	"\bAuthInfo\x12\x14\n" +
+	"\x05login\x18\x01 \x01(\tR\x05login\x12\x1a\n" +
+	"\bpassword\x18\x02 \x01(\tR\bpassword\x12+\n" +
+	"\x04meta\x18\x03 \x03(\v2\x17.api.AuthInfo.MetaEntryR\x04meta\x1a7\n" +
 	"\tMetaEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"1\n" +
-	"\fAuthInfoList\x12!\n" +
-	"\x04list\x18\x01 \x03(\v2\r.api.AuthInfoR\x04list\"\x9a\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x98\x01\n" +
+	"\x0eStoredAuthInfo\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12!\n" +
+	"\x04data\x18\x02 \x01(\v2\r.api.AuthInfoR\x04data\x12\x18\n" +
+	"\aversion\x18\x03 \x01(\x03R\aversion\x129\n" +
+	"\n" +
+	"updated_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\":\n" +
+	"\x15CreateAuthInfoRequest\x12!\n" +
+	"\x04data\x18\x01 \x01(\v2\r.api.AuthInfoR\x04data\"B\n" +
+	"\x16CreateAuthInfoResponse\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x18\n" +
+	"\aversion\x18\x02 \x01(\x03R\aversion\"$\n" +
+	"\x12GetAuthInfoRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\">\n" +
+	"\x13GetAuthInfoResponse\x12'\n" +
+	"\x04item\x18\x01 \x01(\v2\x13.api.StoredAuthInfoR\x04item\"d\n" +
+	"\x15UpdateAuthInfoRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12!\n" +
+	"\x04data\x18\x02 \x01(\v2\r.api.AuthInfoR\x04data\x12\x18\n" +
+	"\aversion\x18\x03 \x01(\x03R\aversion\"9\n" +
+	"\x16UpdateAuthInfoResponse\x12\x1f\n" +
+	"\vnew_version\x18\x01 \x01(\x03R\n" +
+	"newVersion\"A\n" +
+	"\x15DeleteAuthInfoRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x18\n" +
+	"\aversion\x18\x02 \x01(\x03R\aversion\"\x18\n" +
+	"\x16DeleteAuthInfoResponse\"\x9a\x01\n" +
 	"\bTextInfo\x12\x14\n" +
 	"\x05title\x18\x01 \x01(\tR\x05title\x12\x12\n" +
 	"\x04text\x18\x02 \x01(\tR\x04text\x12+\n" +
@@ -845,16 +1261,18 @@ const file_keeper_proto_rawDesc = "" +
 	"\x0fRequestFileName\x12\x1a\n" +
 	"\bfileName\x18\x01 \x01(\tR\bfileName\")\n" +
 	"\x11RequestCardNumber\x12\x14\n" +
-	"\x05last4\x18\x01 \x01(\rR\x05last42w\n" +
-	"\vAuthService\x128\n" +
-	"\bRegister\x12\x14.api.RegisterRequest\x1a\x16.google.protobuf.Empty\x12.\n" +
-	"\x05Login\x12\x11.api.LoginRequest\x1a\x12.api.LoginResponse2\xf3\x03\n" +
-	"\x0eStorageService\x124\n" +
-	"\vSetAuthInfo\x12\r.api.AuthInfo\x1a\x16.google.protobuf.Empty\x124\n" +
+	"\x05last4\x18\x01 \x01(\rR\x05last42v\n" +
+	"\vAuthService\x127\n" +
+	"\bRegister\x12\x14.api.RegisterRequest\x1a\x15.api.RegisterResponse\x12.\n" +
+	"\x05Login\x12\x11.api.LoginRequest\x1a\x12.api.LoginResponse2\xac\x05\n" +
+	"\x0eStorageService\x12I\n" +
+	"\x0eCreateAuthInfo\x12\x1a.api.CreateAuthInfoRequest\x1a\x1b.api.CreateAuthInfoResponse\x12@\n" +
+	"\vGetAuthInfo\x12\x17.api.GetAuthInfoRequest\x1a\x18.api.GetAuthInfoResponse\x12I\n" +
+	"\x0eUpdateAuthInfo\x12\x1a.api.UpdateAuthInfoRequest\x1a\x1b.api.UpdateAuthInfoResponse\x12I\n" +
+	"\x0eDeleteAuthInfo\x12\x1a.api.DeleteAuthInfoRequest\x1a\x1b.api.DeleteAuthInfoResponse\x124\n" +
 	"\vSetTextInfo\x12\r.api.TextInfo\x1a\x16.google.protobuf.Empty\x12@\n" +
 	"\x10SetFileChunkInfo\x12\x12.api.FileChunkInfo\x1a\x16.google.protobuf.Empty(\x01\x12B\n" +
-	"\x12SetBankCardDetails\x12\x14.api.BankCardDetails\x1a\x16.google.protobuf.Empty\x122\n" +
-	"\vGetAuthInfo\x12\x10.api.RequestSite\x1a\x11.api.AuthInfoList\x123\n" +
+	"\x12SetBankCardDetails\x12\x14.api.BankCardDetails\x1a\x16.google.protobuf.Empty\x123\n" +
 	"\vGetTextInfo\x12\x11.api.RequestTitle\x1a\x11.api.TextInfoList\x12>\n" +
 	"\x10GetFileChunkInfo\x12\x14.api.RequestFileName\x1a\x12.api.FileChunkInfo0\x01\x12F\n" +
 	"\x12GetBankCardDetails\x12\x16.api.RequestCardNumber\x1a\x18.api.BankCardDetailsListB7Z5github.com/konkovaanna23/gophkeeper/pkg/keeperserviceb\x06proto3"
@@ -871,62 +1289,79 @@ func file_keeper_proto_rawDescGZIP() []byte {
 	return file_keeper_proto_rawDescData
 }
 
-var file_keeper_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
+var file_keeper_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
 var file_keeper_proto_goTypes = []any{
-	(*RegisterRequest)(nil),     // 0: api.RegisterRequest
-	(*RegisterResponse)(nil),    // 1: api.RegisterResponse
-	(*LoginRequest)(nil),        // 2: api.LoginRequest
-	(*LoginResponse)(nil),       // 3: api.LoginResponse
-	(*AuthInfo)(nil),            // 4: api.AuthInfo
-	(*AuthInfoList)(nil),        // 5: api.AuthInfoList
-	(*TextInfo)(nil),            // 6: api.TextInfo
-	(*TextInfoList)(nil),        // 7: api.TextInfoList
-	(*FileChunkInfo)(nil),       // 8: api.FileChunkInfo
-	(*BankCardDetails)(nil),     // 9: api.BankCardDetails
-	(*BankCardDetailsList)(nil), // 10: api.BankCardDetailsList
-	(*RequestSite)(nil),         // 11: api.RequestSite
-	(*RequestTitle)(nil),        // 12: api.RequestTitle
-	(*RequestFileName)(nil),     // 13: api.RequestFileName
-	(*RequestCardNumber)(nil),   // 14: api.RequestCardNumber
-	nil,                         // 15: api.AuthInfo.MetaEntry
-	nil,                         // 16: api.TextInfo.MetaEntry
-	nil,                         // 17: api.FileChunkInfo.MetaEntry
-	nil,                         // 18: api.BankCardDetails.MetaEntry
-	(*emptypb.Empty)(nil),       // 19: google.protobuf.Empty
+	(*RegisterRequest)(nil),        // 0: api.RegisterRequest
+	(*RegisterResponse)(nil),       // 1: api.RegisterResponse
+	(*LoginRequest)(nil),           // 2: api.LoginRequest
+	(*LoginResponse)(nil),          // 3: api.LoginResponse
+	(*AuthInfo)(nil),               // 4: api.AuthInfo
+	(*StoredAuthInfo)(nil),         // 5: api.StoredAuthInfo
+	(*CreateAuthInfoRequest)(nil),  // 6: api.CreateAuthInfoRequest
+	(*CreateAuthInfoResponse)(nil), // 7: api.CreateAuthInfoResponse
+	(*GetAuthInfoRequest)(nil),     // 8: api.GetAuthInfoRequest
+	(*GetAuthInfoResponse)(nil),    // 9: api.GetAuthInfoResponse
+	(*UpdateAuthInfoRequest)(nil),  // 10: api.UpdateAuthInfoRequest
+	(*UpdateAuthInfoResponse)(nil), // 11: api.UpdateAuthInfoResponse
+	(*DeleteAuthInfoRequest)(nil),  // 12: api.DeleteAuthInfoRequest
+	(*DeleteAuthInfoResponse)(nil), // 13: api.DeleteAuthInfoResponse
+	(*TextInfo)(nil),               // 14: api.TextInfo
+	(*TextInfoList)(nil),           // 15: api.TextInfoList
+	(*FileChunkInfo)(nil),          // 16: api.FileChunkInfo
+	(*BankCardDetails)(nil),        // 17: api.BankCardDetails
+	(*BankCardDetailsList)(nil),    // 18: api.BankCardDetailsList
+	(*RequestSite)(nil),            // 19: api.RequestSite
+	(*RequestTitle)(nil),           // 20: api.RequestTitle
+	(*RequestFileName)(nil),        // 21: api.RequestFileName
+	(*RequestCardNumber)(nil),      // 22: api.RequestCardNumber
+	nil,                            // 23: api.AuthInfo.MetaEntry
+	nil,                            // 24: api.TextInfo.MetaEntry
+	nil,                            // 25: api.FileChunkInfo.MetaEntry
+	nil,                            // 26: api.BankCardDetails.MetaEntry
+	(*timestamppb.Timestamp)(nil),  // 27: google.protobuf.Timestamp
+	(*emptypb.Empty)(nil),          // 28: google.protobuf.Empty
 }
 var file_keeper_proto_depIdxs = []int32{
-	15, // 0: api.AuthInfo.meta:type_name -> api.AuthInfo.MetaEntry
-	4,  // 1: api.AuthInfoList.list:type_name -> api.AuthInfo
-	16, // 2: api.TextInfo.meta:type_name -> api.TextInfo.MetaEntry
-	6,  // 3: api.TextInfoList.list:type_name -> api.TextInfo
-	17, // 4: api.FileChunkInfo.meta:type_name -> api.FileChunkInfo.MetaEntry
-	18, // 5: api.BankCardDetails.meta:type_name -> api.BankCardDetails.MetaEntry
-	9,  // 6: api.BankCardDetailsList.list:type_name -> api.BankCardDetails
-	0,  // 7: api.AuthService.Register:input_type -> api.RegisterRequest
-	2,  // 8: api.AuthService.Login:input_type -> api.LoginRequest
-	4,  // 9: api.StorageService.SetAuthInfo:input_type -> api.AuthInfo
-	6,  // 10: api.StorageService.SetTextInfo:input_type -> api.TextInfo
-	8,  // 11: api.StorageService.SetFileChunkInfo:input_type -> api.FileChunkInfo
-	9,  // 12: api.StorageService.SetBankCardDetails:input_type -> api.BankCardDetails
-	11, // 13: api.StorageService.GetAuthInfo:input_type -> api.RequestSite
-	12, // 14: api.StorageService.GetTextInfo:input_type -> api.RequestTitle
-	13, // 15: api.StorageService.GetFileChunkInfo:input_type -> api.RequestFileName
-	14, // 16: api.StorageService.GetBankCardDetails:input_type -> api.RequestCardNumber
-	19, // 17: api.AuthService.Register:output_type -> google.protobuf.Empty
-	3,  // 18: api.AuthService.Login:output_type -> api.LoginResponse
-	19, // 19: api.StorageService.SetAuthInfo:output_type -> google.protobuf.Empty
-	19, // 20: api.StorageService.SetTextInfo:output_type -> google.protobuf.Empty
-	19, // 21: api.StorageService.SetFileChunkInfo:output_type -> google.protobuf.Empty
-	19, // 22: api.StorageService.SetBankCardDetails:output_type -> google.protobuf.Empty
-	5,  // 23: api.StorageService.GetAuthInfo:output_type -> api.AuthInfoList
-	7,  // 24: api.StorageService.GetTextInfo:output_type -> api.TextInfoList
-	8,  // 25: api.StorageService.GetFileChunkInfo:output_type -> api.FileChunkInfo
-	10, // 26: api.StorageService.GetBankCardDetails:output_type -> api.BankCardDetailsList
-	17, // [17:27] is the sub-list for method output_type
-	7,  // [7:17] is the sub-list for method input_type
-	7,  // [7:7] is the sub-list for extension type_name
-	7,  // [7:7] is the sub-list for extension extendee
-	0,  // [0:7] is the sub-list for field type_name
+	23, // 0: api.AuthInfo.meta:type_name -> api.AuthInfo.MetaEntry
+	4,  // 1: api.StoredAuthInfo.data:type_name -> api.AuthInfo
+	27, // 2: api.StoredAuthInfo.updated_at:type_name -> google.protobuf.Timestamp
+	4,  // 3: api.CreateAuthInfoRequest.data:type_name -> api.AuthInfo
+	5,  // 4: api.GetAuthInfoResponse.item:type_name -> api.StoredAuthInfo
+	4,  // 5: api.UpdateAuthInfoRequest.data:type_name -> api.AuthInfo
+	24, // 6: api.TextInfo.meta:type_name -> api.TextInfo.MetaEntry
+	14, // 7: api.TextInfoList.list:type_name -> api.TextInfo
+	25, // 8: api.FileChunkInfo.meta:type_name -> api.FileChunkInfo.MetaEntry
+	26, // 9: api.BankCardDetails.meta:type_name -> api.BankCardDetails.MetaEntry
+	17, // 10: api.BankCardDetailsList.list:type_name -> api.BankCardDetails
+	0,  // 11: api.AuthService.Register:input_type -> api.RegisterRequest
+	2,  // 12: api.AuthService.Login:input_type -> api.LoginRequest
+	6,  // 13: api.StorageService.CreateAuthInfo:input_type -> api.CreateAuthInfoRequest
+	8,  // 14: api.StorageService.GetAuthInfo:input_type -> api.GetAuthInfoRequest
+	10, // 15: api.StorageService.UpdateAuthInfo:input_type -> api.UpdateAuthInfoRequest
+	12, // 16: api.StorageService.DeleteAuthInfo:input_type -> api.DeleteAuthInfoRequest
+	14, // 17: api.StorageService.SetTextInfo:input_type -> api.TextInfo
+	16, // 18: api.StorageService.SetFileChunkInfo:input_type -> api.FileChunkInfo
+	17, // 19: api.StorageService.SetBankCardDetails:input_type -> api.BankCardDetails
+	20, // 20: api.StorageService.GetTextInfo:input_type -> api.RequestTitle
+	21, // 21: api.StorageService.GetFileChunkInfo:input_type -> api.RequestFileName
+	22, // 22: api.StorageService.GetBankCardDetails:input_type -> api.RequestCardNumber
+	1,  // 23: api.AuthService.Register:output_type -> api.RegisterResponse
+	3,  // 24: api.AuthService.Login:output_type -> api.LoginResponse
+	7,  // 25: api.StorageService.CreateAuthInfo:output_type -> api.CreateAuthInfoResponse
+	9,  // 26: api.StorageService.GetAuthInfo:output_type -> api.GetAuthInfoResponse
+	11, // 27: api.StorageService.UpdateAuthInfo:output_type -> api.UpdateAuthInfoResponse
+	13, // 28: api.StorageService.DeleteAuthInfo:output_type -> api.DeleteAuthInfoResponse
+	28, // 29: api.StorageService.SetTextInfo:output_type -> google.protobuf.Empty
+	28, // 30: api.StorageService.SetFileChunkInfo:output_type -> google.protobuf.Empty
+	28, // 31: api.StorageService.SetBankCardDetails:output_type -> google.protobuf.Empty
+	15, // 32: api.StorageService.GetTextInfo:output_type -> api.TextInfoList
+	16, // 33: api.StorageService.GetFileChunkInfo:output_type -> api.FileChunkInfo
+	18, // 34: api.StorageService.GetBankCardDetails:output_type -> api.BankCardDetailsList
+	23, // [23:35] is the sub-list for method output_type
+	11, // [11:23] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_keeper_proto_init() }
@@ -940,7 +1375,7 @@ func file_keeper_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_keeper_proto_rawDesc), len(file_keeper_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   19,
+			NumMessages:   27,
 			NumExtensions: 0,
 			NumServices:   2,
 		},

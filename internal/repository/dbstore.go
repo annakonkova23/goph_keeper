@@ -10,13 +10,15 @@ import (
 )
 
 type StoreRepository interface {
-	CreateUser(ctx context.Context, login, password string) error
+	CreateUser(ctx context.Context, id, login, password string) error
 	GetUserByLogin(ctx context.Context, loginSrc string) (string, string, error)
-	SaveAuthData(ctx context.Context, user string, auth *model.AuthData) error
+	CreateAuthData(ctx context.Context, auth *model.AuthData) (int64, error)
+	GetAuthData(ctx context.Context, userID, authID string) (*model.AuthData, error)
+	UpdateAuthData(ctx context.Context, auth *model.AuthData, expectedVersion int64) (int64, error)
+	DeleteAuthData(ctx context.Context, userID, authID string, expectedVersion int64) error
 	SaveFileChunk(ctx context.Context, user string, file *model.FileChunk) error
 	SaveTextData(ctx context.Context, user string, text *model.TextData) error
 	SaveBankCardData(ctx context.Context, user string, bankCard *model.BankCardData) error
-	GetAuthData(ctx context.Context, user string, site string) ([]*model.AuthData, error)
 	GetFileChunk(ctx context.Context, user string, fileName string, chunkNum int) (*model.FileChunk, error)
 	GetTextData(ctx context.Context, user string, title string) ([]*model.TextData, error)
 	GetBankCardData(ctx context.Context, user string, encryptedNumber uint32) ([]*model.BankCardData, error)

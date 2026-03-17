@@ -1,5 +1,7 @@
 package model
 
+import "time"
+
 // User — пользователь системы
 type User struct {
 	Login    string `json:"login" db:"login"`
@@ -8,10 +10,13 @@ type User struct {
 
 // AuthData — данные для входа на сайт (логин/пароль)
 type AuthData struct {
-	Site     string            `json:"site" db:"site"`
-	Login    string            `json:"login" db:"login"`
-	Password string            `json:"password" db:"password"`
-	Meta     map[string]string `json:"meta" db:"meta"`
+	ID        string
+	UserID    string
+	Login     string `json:"login" db:"login"`
+	Password  []byte `json:"password" db:"password"`
+	Meta      []byte `json:"meta" db:"meta"`
+	Version   int64
+	UpdatedAt time.Time
 }
 
 // FileChunk — чанк файла (файлы хранятся по частям)

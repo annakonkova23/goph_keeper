@@ -2,6 +2,7 @@ syntax = "proto3";
 
 
 import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
 
 package api;
 
@@ -26,20 +27,57 @@ message LoginResponse {
 }
 
 service AuthService {
-  rpc Register(RegisterRequest) returns (google.protobuf.Empty);
+  rpc Register(RegisterRequest) returns (RegisterResponse);
   rpc Login(LoginRequest) returns (LoginResponse);
 }
 
 message AuthInfo {
-  string site=1;
-  string login = 2;
-  string password = 3;
-  map<string, string> meta = 4;
+  string login = 1;
+  string password = 2;
+  map<string, string> meta = 3;
 }
 
-message AuthInfoList {
-  repeated AuthInfo list=1;
+message StoredAuthInfo {
+  string id = 1;
+  AuthInfo data = 2;
+  int64 version = 3;
+  google.protobuf.Timestamp updated_at = 4;
 }
+
+message CreateAuthInfoRequest {
+  AuthInfo data = 1;
+}
+
+message CreateAuthInfoResponse {
+  string id = 1;
+  int64 version = 2;
+}
+
+message GetAuthInfoRequest {
+  string id = 1;
+}
+
+message GetAuthInfoResponse {
+  StoredAuthInfo item = 1;
+}
+
+message UpdateAuthInfoRequest {
+  string id = 1;
+  AuthInfo data = 2;
+  int64 version = 3; 
+}
+
+message UpdateAuthInfoResponse {
+  int64 new_version = 1;
+}
+
+message DeleteAuthInfoRequest {
+  string id = 1;
+  int64 version = 2;
+}
+
+message DeleteAuthInfoResponse {}
+
 
 message TextInfo {
   string title=1;
@@ -87,11 +125,13 @@ message RequestCardNumber {
 
 
 service StorageService {
-  rpc SetAuthInfo(AuthInfo) returns (google.protobuf.Empty);
+  rpc CreateAuthInfo(CreateAuthInfoRequest) returns (CreateAuthInfoResponse);
+  rpc GetAuthInfo(GetAuthInfoRequest) returns (GetAuthInfoResponse);
+  rpc UpdateAuthInfo(UpdateAuthInfoRequest) returns (UpdateAuthInfoResponse);
+  rpc DeleteAuthInfo(DeleteAuthInfoRequest) returns (DeleteAuthInfoResponse);
   rpc SetTextInfo(TextInfo) returns (google.protobuf.Empty); 
   rpc SetFileChunkInfo(stream FileChunkInfo) returns (google.protobuf.Empty); 
   rpc SetBankCardDetails(BankCardDetails) returns (google.protobuf.Empty);
-  rpc GetAuthInfo(RequestSite) returns (AuthInfoList);
   rpc GetTextInfo(RequestTitle) returns (TextInfoList);
   rpc GetFileChunkInfo(RequestFileName) returns (stream FileChunkInfo);
   rpc GetBankCardDetails(RequestCardNumber) returns (BankCardDetailsList);

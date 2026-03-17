@@ -4,13 +4,13 @@ import (
 	"context"
 	"errors"
 
+	"github.com/google/uuid"
 	"github.com/konkovaanna23/gophkeeper/internal/auth"
 	"github.com/konkovaanna23/gophkeeper/internal/repository"
 	pb "github.com/konkovaanna23/gophkeeper/pkg/keeperservice"
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type AuthServer struct {
@@ -26,7 +26,7 @@ func NewAuthServer(repo repository.StoreRepository, jwtManager *auth.JWTManager)
 	}
 }
 
-func (s *AuthServer) Register(ctx context.Context, req *pb.RegisterRequest) (*emptypb.Empty, error) {
+func (s *AuthServer) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
 	if req.GetLogin() == "" || req.GetPassword() == "" {
 		return nil, status.Error(codes.InvalidArgument, "email and password are required")
 	}
@@ -36,7 +36,9 @@ func (s *AuthServer) Register(ctx context.Context, req *pb.RegisterRequest) (*em
 		return nil, status.Error(codes.Internal, "failed to hash password")
 	}
 
-	err = s.repo.CreateUser(ctx, req.GetLogin(), string(hash))
+	userID := NewUUID()
+
+	err = s.repo.CreateUser(ctx, userID, req.GetLogin(), string(hash))
 	if err != nil {
 		if errors.Is(err, repository.ErrorConflict) {
 			return nil, status.Error(codes.AlreadyExists, "user already exists")
@@ -44,7 +46,7 @@ func (s *AuthServer) Register(ctx context.Context, req *pb.RegisterRequest) (*em
 		return nil, status.Error(codes.Internal, "failed to create user")
 	}
 
-	return &emptypb.Empty{}, nil
+	return &pb.RegisterResponse{UserId: userID}, nil
 }
 
 func (s *AuthServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
@@ -70,4 +72,8 @@ func (s *AuthServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Login
 	}
 
 	return &pb.LoginResponse{AccessToken: token}, nil
+}
+
+func NewUUID() string {
+	return uuid.NewString()
 }
