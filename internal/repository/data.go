@@ -3,11 +3,8 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
-	"errors"
 	"fmt"
 
-	"github.com/jackc/pgx/v4"
 	"github.com/konkovaanna23/gophkeeper/internal/model"
 )
 
@@ -77,106 +74,141 @@ func (ds *DBStore) DeleteAuthData(ctx context.Context, userID, authID string, ex
 	return nil
 }
 
-func (ds *DBStore) SaveTextData(ctx context.Context, user, text model.TextData) error {
-	metaJSON, err := json.Marshal(text.Meta)
+func (ds *DBStore) CreateTextData(ctx context.Context, text *model.TextData) (int64, error) {
+	var version int64
+
+	err := ds.database.QueryRowContext(ctx, insertTextData,
+		text.ID, text.UserID, text.Data, text.Meta).
+		Scan(&version)
 	if err != nil {
-		return fmt.Errorf("failed to marshal meta: %w", err)
+		return 0, fmt.Errorf("failed to insert text data: %w", err)
+	}
+	return version, nil
+}
+
+func (ds *DBStore) GetTextData(ctx context.Context, userID, textID string) (*model.TextData, error) {
+	text := &model.TextData{}
+	text.ID = textID
+	text.UserID = userID
+
+	err := ds.database.QueryRowContext(ctx, selectTextData, textID, userID).Scan(
+		&text.Data,
+		&text.Meta,
+		&text.Version,
+		&text.UpdatedAt,
+	)
+	if err == sql.ErrNoRows {
+		return nil, ErrorNotContent
+	}
+	return text, err
+}
+
+func (ds *DBStore) UpdateTextData(ctx context.Context, text *model.TextData, expectedVersion int64) (int64, error) {
+	var newVersion int64
+
+	err := ds.database.QueryRowContext(ctx, updateTextData,
+		text.Data, text.Meta,
+		text.ID, text.UserID, expectedVersion,
+	).Scan(&newVersion)
+
+	if err == sql.ErrNoRows {
+		return 0, ErrorVersionConflict
+	}
+	if err != nil {
+		return 0, fmt.Errorf("failed to update auth data: %w", err)
 	}
 
-	_, err = ds.database.ExecContext(ctx, insertTextData,
-		user, text.Title, text.Data, metaJSON)
+	return newVersion, nil
+}
+
+func (ds *DBStore) DeleteTextData(ctx context.Context, userID, textID string, expectedVersion int64) error {
+	res, err := ds.database.ExecContext(ctx, deleteTextData,
+		textID, userID, expectedVersion,
+	)
 	if err != nil {
-		return fmt.Errorf("failed to insert text data: %w", err)
+		return fmt.Errorf("failed to delete auth data: %w", err)
 	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to delete auth data: %w", err)
+	}
+	if rows == 0 {
+		return ErrorVersionConflict
+	}
+
 	return nil
 }
 
-func (ds *DBStore) SaveBankCardData(ctx context.Context, user string, bankCard model.BankCardData) error {
-	metaJSON, err := json.Marshal(bankCard.Meta)
+func (ds *DBStore) CreateBankCardData(ctx context.Context, card *model.BankCardData) (int64, error) {
+	var version int64
+
+	err := ds.database.QueryRowContext(ctx, insertBankCardData,
+		card.ID, card.UserID, card.Last4, card.NumberEncrypted, card.ExpMonth, card.ExpYear, card.Owner, card.Meta).
+		Scan(&version)
 	if err != nil {
-		return fmt.Errorf("failed to marshal meta: %w", err)
+		return 0, fmt.Errorf("failed to insert text data: %w", err)
+	}
+	return version, nil
+}
+
+func (ds *DBStore) GetBankCardData(ctx context.Context, userID, cardID string) (*model.BankCardData, error) {
+	card := &model.BankCardData{}
+	card.ID = cardID
+	card.UserID = userID
+
+	err := ds.database.QueryRowContext(ctx, selectTextData, cardID, userID).Scan(
+		&card.Last4,
+		&card.NumberEncrypted,
+		&card.ExpMonth,
+		&card.ExpYear,
+		&card.Owner,
+		&card.Meta,
+		&card.Version,
+		&card.UpdatedAt,
+	)
+	if err == sql.ErrNoRows {
+		return nil, ErrorNotContent
+	}
+	return card, err
+}
+
+func (ds *DBStore) UpdateBankCardData(ctx context.Context, card *model.BankCardData, expectedVersion int64) (int64, error) {
+	var newVersion int64
+
+	err := ds.database.QueryRowContext(ctx, updateBankCardData,
+		card.Last4,
+		card.NumberEncrypted,
+		card.ExpMonth,
+		card.ExpYear,
+		card.Owner,
+		card.Meta,
+		card.ID, card.UserID, expectedVersion,
+	).Scan(&newVersion)
+
+	if err == sql.ErrNoRows {
+		return 0, ErrorVersionConflict
+	}
+	if err != nil {
+		return 0, fmt.Errorf("failed to update auth data: %w", err)
 	}
 
-	_, err = ds.database.ExecContext(ctx, insertBankCardData,
-		user, bankCard.Last4, bankCard.NumberEncrypted, bankCard.ExpMonth, bankCard.ExpYear, bankCard.Owner, metaJSON)
+	return newVersion, nil
+}
+
+func (ds *DBStore) DeleteBancCardData(ctx context.Context, userID, cardID string, expectedVersion int64) error {
+	res, err := ds.database.ExecContext(ctx, deleteBankCardData,
+		cardID, userID, expectedVersion,
+	)
 	if err != nil {
-		return fmt.Errorf("failed to insert bank card data: %w", err)
+		return fmt.Errorf("failed to delete auth data: %w", err)
 	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to delete auth data: %w", err)
+	}
+	if rows == 0 {
+		return ErrorVersionConflict
+	}
+
 	return nil
-}
-
-func (ds *DBStore) GetTextData(ctx context.Context, user, title string) ([]*model.TextData, error) {
-	rows, err := ds.database.QueryContext(ctx, selectAuthData, user, title)
-	if err != nil {
-		return nil, fmt.Errorf("failed to query auth data: %w", err)
-	}
-	defer rows.Close()
-
-	var result []*model.TextData
-
-	for rows.Next() {
-		var data model.TextData
-		var metaJSON []byte
-
-		err := rows.Scan(&data.Title, &data.Data, &metaJSON)
-		if err != nil {
-			return nil, fmt.Errorf("failed to scan auth data row: %w", err)
-		}
-
-		if len(metaJSON) > 0 {
-			if err := json.Unmarshal(metaJSON, &data.Meta); err != nil {
-				return nil, fmt.Errorf("failed to unmarshal meta: %w", err)
-			}
-		} else {
-			data.Meta = map[string]string{} // или оставить nil, зависит от модели
-		}
-
-		result = append(result, &data)
-	}
-
-	if err = rows.Err(); err != nil {
-		return nil, fmt.Errorf("error during row iteration: %w", err)
-	}
-
-	return result, nil
-}
-
-func (ds *DBStore) GetBankCardData(ctx context.Context, user string, last4 uint32) ([]*model.BankCardData, error) {
-	rows, err := ds.database.QueryContext(ctx, selectAuthData, user, last4)
-	if err != nil {
-		return nil, fmt.Errorf("failed to query auth data: %w", err)
-	}
-	defer rows.Close()
-
-	var result []*model.BankCardData
-
-	for rows.Next() {
-		var data model.BankCardData
-		var metaJSON []byte
-
-		err := rows.Scan(
-			&data.Last4, &data.NumberEncrypted,
-			&data.ExpMonth, &data.ExpYear, &data.Owner, &metaJSON,
-		)
-
-		if err != nil {
-			return nil, fmt.Errorf("failed to scan auth data row: %w", err)
-		}
-
-		if len(metaJSON) > 0 {
-			if err := json.Unmarshal(metaJSON, &data.Meta); err != nil {
-				return nil, fmt.Errorf("failed to unmarshal meta: %w", err)
-			}
-		} else {
-			data.Meta = map[string]string{}
-		}
-
-		result = append(result, &data)
-	}
-
-	if err = rows.Err(); err != nil {
-		return nil, fmt.Errorf("error during row iteration: %w", err)
-	}
-
-	return result, nil
 }

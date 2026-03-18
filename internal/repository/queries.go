@@ -6,6 +6,46 @@ var insertUser string = `
 	`
 var selectUserLogin string = `SELECT id, password FROM storage.users WHERE login = $1`
 
+var insertTextData string = `
+       	INSERT INTO storage.text_data(
+			id, user_id, data, meta
+		)
+		VALUES ($1, $2, $3, $4)
+		RETURNING version`
+
+var selectTextData string = `
+	 SELECT data, meta, version, updated_at
+     FROM storage.text_data 
+     WHERE id = $1
+		  AND user_id = $2
+		  AND deleted_at IS NULL
+`
+
+var updateTextData string = `
+	 UPDATE  storage.text_data 
+		SET 
+		    data = $1
+		    meta = $2,
+		    version = version + 1,
+		    updated_at = now()
+		WHERE id = $3
+		  AND user_id = $4
+		  AND version = $5
+		  AND deleted_at IS NULL
+		RETURNING version
+`
+
+var deleteTextData string = `
+	 UPDATE storage.text_data 
+		SET deleted_at = now(),
+		    version = version + 1,
+		    updated_at = now()
+		WHERE id = $1
+		  AND user_id = $2
+		  AND version = $3
+		  AND deleted_at IS NULL
+ `
+
 var insertAuthData string = `
        	INSERT INTO storage.auth_data(
 			id, user_id,login,password, meta
@@ -47,43 +87,46 @@ var deleteAuthData string = `
 		  AND deleted_at IS NULL
  `
 
-var insertFileChunk string = `
-        INSERT INTO storage.file_data (user_login, file_name, chunk_num, data, meta)
-        VALUES ($1, $2, $3, $4, $5::jsonb)
-        ON CONFLICT (user_login, file_name, chunk_num) DO UPDATE
-        SET data = EXCLUDED.data,
-            meta = EXCLUDED.meta`
-
-var insertTextData string = `
-        INSERT INTO storage.text_data (user_login, title, data, meta)
-        VALUES ($1, $2, $3, $4::jsonb)
-        ON CONFLICT (user_login, title) DO UPDATE
-        SET data = EXCLUDED.data,
-            meta = EXCLUDED.meta`
-
 var insertBankCardData string = `
-        INSERT INTO storage.bank_card_data (user_login, last4, numbercard, expmonth, expyear, owner, meta)
-        VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb)
-        ON CONFLICT (user_login, numbercard) DO UPDATE
-        SET last4 = EXCLUDED.last4,
-            expmonth = EXCLUDED.expmonth,
-            expyear = EXCLUDED.expyear,
-            owner = EXCLUDED.owner,
-            meta = EXCLUDED.meta`
+       	INSERT INTO storage.bank_card_data(
+			id, user_id, last4, number_card, exp_month, exp_year, owner, meta 
+		)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+		RETURNING version`
 
-var selectFileData string = `
-	SELECT file_name, chunk_num, data, meta 
-    FROM storage.file_data 
-    WHERE user_login = $1 AND file_name = $2 AND chunk_num = $3
-`
-var selectTextData string = `
-	SELECT title, data, meta 
-    FROM storage.text_data 
-    WHERE user_login = $1 AND (title = $2 OR $2='')
+var selectBankCardDataData string = `
+	 SELECT last4, number_card, exp_month, exp_year, owner, meta  version, updated_at
+     FROM storage.bank_card_data
+     WHERE id = $1
+		  AND user_id = $2
+		  AND deleted_at IS NULL
 `
 
-var selectBankCardData string = `
-	SELECT last4, number_card, exp_month, exp_year, owner, meta 
-    FROM storage.bank_card_data 
-    WHERE user_login = $1 AND (last4 = $2 OR $2=0)
+var updateBankCardData string = `
+	 UPDATE  storage.auth_data 
+		SET 
+		    last4 = $1, 
+            number_card = $2, 
+            exp_month = $3, 
+            exp_year = $4, 
+            owner = $5,
+		    meta = $6,
+		    version = version + 1,
+		    updated_at = now()
+		WHERE id = $7
+		  AND user_id = $8
+		  AND version = $9
+		  AND deleted_at IS NULL
+		RETURNING version
 `
+
+var deleteBankCardData string = `
+	 UPDATE storage.bank_card_data 
+		SET deleted_at = now(),
+		    version = version + 1,
+		    updated_at = now()
+		WHERE id = $1
+		  AND user_id = $2
+		  AND version = $3
+		  AND deleted_at IS NULL
+ `
