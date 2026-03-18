@@ -11,7 +11,6 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -160,32 +159,48 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	StorageService_CreateAuthInfo_FullMethodName     = "/api.StorageService/CreateAuthInfo"
-	StorageService_GetAuthInfo_FullMethodName        = "/api.StorageService/GetAuthInfo"
-	StorageService_UpdateAuthInfo_FullMethodName     = "/api.StorageService/UpdateAuthInfo"
-	StorageService_DeleteAuthInfo_FullMethodName     = "/api.StorageService/DeleteAuthInfo"
-	StorageService_SetTextInfo_FullMethodName        = "/api.StorageService/SetTextInfo"
-	StorageService_SetFileChunkInfo_FullMethodName   = "/api.StorageService/SetFileChunkInfo"
-	StorageService_SetBankCardDetails_FullMethodName = "/api.StorageService/SetBankCardDetails"
-	StorageService_GetTextInfo_FullMethodName        = "/api.StorageService/GetTextInfo"
-	StorageService_GetFileChunkInfo_FullMethodName   = "/api.StorageService/GetFileChunkInfo"
-	StorageService_GetBankCardDetails_FullMethodName = "/api.StorageService/GetBankCardDetails"
+	StorageService_CreateAuthInfo_FullMethodName        = "/api.StorageService/CreateAuthInfo"
+	StorageService_GetAuthInfo_FullMethodName           = "/api.StorageService/GetAuthInfo"
+	StorageService_UpdateAuthInfo_FullMethodName        = "/api.StorageService/UpdateAuthInfo"
+	StorageService_DeleteAuthInfo_FullMethodName        = "/api.StorageService/DeleteAuthInfo"
+	StorageService_CreateTextInfo_FullMethodName        = "/api.StorageService/CreateTextInfo"
+	StorageService_GetTextInfo_FullMethodName           = "/api.StorageService/GetTextInfo"
+	StorageService_UpdateTextInfo_FullMethodName        = "/api.StorageService/UpdateTextInfo"
+	StorageService_DeleteTextInfo_FullMethodName        = "/api.StorageService/DeleteTextInfo"
+	StorageService_CreateBankCardDetails_FullMethodName = "/api.StorageService/CreateBankCardDetails"
+	StorageService_GetBankCardDetails_FullMethodName    = "/api.StorageService/GetBankCardDetails"
+	StorageService_UpdateBankCardDetails_FullMethodName = "/api.StorageService/UpdateBankCardDetails"
+	StorageService_DeleteBankCardDetails_FullMethodName = "/api.StorageService/DeleteBankCardDetails"
+	StorageService_StartUpload_FullMethodName           = "/api.StorageService/StartUpload"
+	StorageService_UploadChunks_FullMethodName          = "/api.StorageService/UploadChunks"
+	StorageService_CommitUpload_FullMethodName          = "/api.StorageService/CommitUpload"
+	StorageService_GetFileMeta_FullMethodName           = "/api.StorageService/GetFileMeta"
+	StorageService_DownloadFile_FullMethodName          = "/api.StorageService/DownloadFile"
+	StorageService_DeleteFile_FullMethodName            = "/api.StorageService/DeleteFile"
 )
 
 // StorageServiceClient is the client API for StorageService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type StorageServiceClient interface {
-	CreateAuthInfo(ctx context.Context, in *CreateAuthInfoRequest, opts ...grpc.CallOption) (*CreateAuthInfoResponse, error)
-	GetAuthInfo(ctx context.Context, in *GetAuthInfoRequest, opts ...grpc.CallOption) (*GetAuthInfoResponse, error)
-	UpdateAuthInfo(ctx context.Context, in *UpdateAuthInfoRequest, opts ...grpc.CallOption) (*UpdateAuthInfoResponse, error)
-	DeleteAuthInfo(ctx context.Context, in *DeleteAuthInfoRequest, opts ...grpc.CallOption) (*DeleteAuthInfoResponse, error)
-	SetTextInfo(ctx context.Context, in *TextInfo, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	SetFileChunkInfo(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[FileChunkInfo, emptypb.Empty], error)
-	SetBankCardDetails(ctx context.Context, in *BankCardDetails, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	GetTextInfo(ctx context.Context, in *RequestTitle, opts ...grpc.CallOption) (*TextInfoList, error)
-	GetFileChunkInfo(ctx context.Context, in *RequestFileName, opts ...grpc.CallOption) (grpc.ServerStreamingClient[FileChunkInfo], error)
-	GetBankCardDetails(ctx context.Context, in *RequestCardNumber, opts ...grpc.CallOption) (*BankCardDetailsList, error)
+	CreateAuthInfo(ctx context.Context, in *AuthInfo, opts ...grpc.CallOption) (*CreateInfoResponse, error)
+	GetAuthInfo(ctx context.Context, in *GetInfoRequest, opts ...grpc.CallOption) (*StoredAuthInfo, error)
+	UpdateAuthInfo(ctx context.Context, in *UpdateAuthInfoRequest, opts ...grpc.CallOption) (*UpdateInfoResponse, error)
+	DeleteAuthInfo(ctx context.Context, in *DeleteInfoRequest, opts ...grpc.CallOption) (*DeleteInfoResponse, error)
+	CreateTextInfo(ctx context.Context, in *TextInfo, opts ...grpc.CallOption) (*CreateInfoResponse, error)
+	GetTextInfo(ctx context.Context, in *GetInfoRequest, opts ...grpc.CallOption) (*StoredTextInfo, error)
+	UpdateTextInfo(ctx context.Context, in *UpdateTextInfoRequest, opts ...grpc.CallOption) (*UpdateInfoResponse, error)
+	DeleteTextInfo(ctx context.Context, in *DeleteInfoRequest, opts ...grpc.CallOption) (*DeleteInfoResponse, error)
+	CreateBankCardDetails(ctx context.Context, in *BankCardDetails, opts ...grpc.CallOption) (*CreateInfoResponse, error)
+	GetBankCardDetails(ctx context.Context, in *GetInfoRequest, opts ...grpc.CallOption) (*StoredBankCardDetails, error)
+	UpdateBankCardDetails(ctx context.Context, in *UpdateBankCardDetailsRequest, opts ...grpc.CallOption) (*UpdateInfoResponse, error)
+	DeleteBankCardDetails(ctx context.Context, in *DeleteInfoRequest, opts ...grpc.CallOption) (*DeleteInfoResponse, error)
+	StartUpload(ctx context.Context, in *StartUploadRequest, opts ...grpc.CallOption) (*StartUploadResponse, error)
+	UploadChunks(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[UploadChunkRequest, UploadChunksResponse], error)
+	CommitUpload(ctx context.Context, in *CommitUploadRequest, opts ...grpc.CallOption) (*CommitUploadResponse, error)
+	GetFileMeta(ctx context.Context, in *GetFileMetaRequest, opts ...grpc.CallOption) (*GetFileMetaResponse, error)
+	DownloadFile(ctx context.Context, in *DownloadFileRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[DownloadFileChunk], error)
+	DeleteFile(ctx context.Context, in *DeleteFileRequest, opts ...grpc.CallOption) (*DeleteInfoResponse, error)
 }
 
 type storageServiceClient struct {
@@ -196,9 +211,9 @@ func NewStorageServiceClient(cc grpc.ClientConnInterface) StorageServiceClient {
 	return &storageServiceClient{cc}
 }
 
-func (c *storageServiceClient) CreateAuthInfo(ctx context.Context, in *CreateAuthInfoRequest, opts ...grpc.CallOption) (*CreateAuthInfoResponse, error) {
+func (c *storageServiceClient) CreateAuthInfo(ctx context.Context, in *AuthInfo, opts ...grpc.CallOption) (*CreateInfoResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateAuthInfoResponse)
+	out := new(CreateInfoResponse)
 	err := c.cc.Invoke(ctx, StorageService_CreateAuthInfo_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -206,9 +221,9 @@ func (c *storageServiceClient) CreateAuthInfo(ctx context.Context, in *CreateAut
 	return out, nil
 }
 
-func (c *storageServiceClient) GetAuthInfo(ctx context.Context, in *GetAuthInfoRequest, opts ...grpc.CallOption) (*GetAuthInfoResponse, error) {
+func (c *storageServiceClient) GetAuthInfo(ctx context.Context, in *GetInfoRequest, opts ...grpc.CallOption) (*StoredAuthInfo, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetAuthInfoResponse)
+	out := new(StoredAuthInfo)
 	err := c.cc.Invoke(ctx, StorageService_GetAuthInfo_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -216,9 +231,9 @@ func (c *storageServiceClient) GetAuthInfo(ctx context.Context, in *GetAuthInfoR
 	return out, nil
 }
 
-func (c *storageServiceClient) UpdateAuthInfo(ctx context.Context, in *UpdateAuthInfoRequest, opts ...grpc.CallOption) (*UpdateAuthInfoResponse, error) {
+func (c *storageServiceClient) UpdateAuthInfo(ctx context.Context, in *UpdateAuthInfoRequest, opts ...grpc.CallOption) (*UpdateInfoResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(UpdateAuthInfoResponse)
+	out := new(UpdateInfoResponse)
 	err := c.cc.Invoke(ctx, StorageService_UpdateAuthInfo_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -226,9 +241,9 @@ func (c *storageServiceClient) UpdateAuthInfo(ctx context.Context, in *UpdateAut
 	return out, nil
 }
 
-func (c *storageServiceClient) DeleteAuthInfo(ctx context.Context, in *DeleteAuthInfoRequest, opts ...grpc.CallOption) (*DeleteAuthInfoResponse, error) {
+func (c *storageServiceClient) DeleteAuthInfo(ctx context.Context, in *DeleteInfoRequest, opts ...grpc.CallOption) (*DeleteInfoResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DeleteAuthInfoResponse)
+	out := new(DeleteInfoResponse)
 	err := c.cc.Invoke(ctx, StorageService_DeleteAuthInfo_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -236,42 +251,19 @@ func (c *storageServiceClient) DeleteAuthInfo(ctx context.Context, in *DeleteAut
 	return out, nil
 }
 
-func (c *storageServiceClient) SetTextInfo(ctx context.Context, in *TextInfo, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *storageServiceClient) CreateTextInfo(ctx context.Context, in *TextInfo, opts ...grpc.CallOption) (*CreateInfoResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, StorageService_SetTextInfo_FullMethodName, in, out, cOpts...)
+	out := new(CreateInfoResponse)
+	err := c.cc.Invoke(ctx, StorageService_CreateTextInfo_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *storageServiceClient) SetFileChunkInfo(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[FileChunkInfo, emptypb.Empty], error) {
+func (c *storageServiceClient) GetTextInfo(ctx context.Context, in *GetInfoRequest, opts ...grpc.CallOption) (*StoredTextInfo, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &StorageService_ServiceDesc.Streams[0], StorageService_SetFileChunkInfo_FullMethodName, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &grpc.GenericClientStream[FileChunkInfo, emptypb.Empty]{ClientStream: stream}
-	return x, nil
-}
-
-// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type StorageService_SetFileChunkInfoClient = grpc.ClientStreamingClient[FileChunkInfo, emptypb.Empty]
-
-func (c *storageServiceClient) SetBankCardDetails(ctx context.Context, in *BankCardDetails, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, StorageService_SetBankCardDetails_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *storageServiceClient) GetTextInfo(ctx context.Context, in *RequestTitle, opts ...grpc.CallOption) (*TextInfoList, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(TextInfoList)
+	out := new(StoredTextInfo)
 	err := c.cc.Invoke(ctx, StorageService_GetTextInfo_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -279,13 +271,116 @@ func (c *storageServiceClient) GetTextInfo(ctx context.Context, in *RequestTitle
 	return out, nil
 }
 
-func (c *storageServiceClient) GetFileChunkInfo(ctx context.Context, in *RequestFileName, opts ...grpc.CallOption) (grpc.ServerStreamingClient[FileChunkInfo], error) {
+func (c *storageServiceClient) UpdateTextInfo(ctx context.Context, in *UpdateTextInfoRequest, opts ...grpc.CallOption) (*UpdateInfoResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &StorageService_ServiceDesc.Streams[1], StorageService_GetFileChunkInfo_FullMethodName, cOpts...)
+	out := new(UpdateInfoResponse)
+	err := c.cc.Invoke(ctx, StorageService_UpdateTextInfo_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &grpc.GenericClientStream[RequestFileName, FileChunkInfo]{ClientStream: stream}
+	return out, nil
+}
+
+func (c *storageServiceClient) DeleteTextInfo(ctx context.Context, in *DeleteInfoRequest, opts ...grpc.CallOption) (*DeleteInfoResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteInfoResponse)
+	err := c.cc.Invoke(ctx, StorageService_DeleteTextInfo_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *storageServiceClient) CreateBankCardDetails(ctx context.Context, in *BankCardDetails, opts ...grpc.CallOption) (*CreateInfoResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateInfoResponse)
+	err := c.cc.Invoke(ctx, StorageService_CreateBankCardDetails_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *storageServiceClient) GetBankCardDetails(ctx context.Context, in *GetInfoRequest, opts ...grpc.CallOption) (*StoredBankCardDetails, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StoredBankCardDetails)
+	err := c.cc.Invoke(ctx, StorageService_GetBankCardDetails_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *storageServiceClient) UpdateBankCardDetails(ctx context.Context, in *UpdateBankCardDetailsRequest, opts ...grpc.CallOption) (*UpdateInfoResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateInfoResponse)
+	err := c.cc.Invoke(ctx, StorageService_UpdateBankCardDetails_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *storageServiceClient) DeleteBankCardDetails(ctx context.Context, in *DeleteInfoRequest, opts ...grpc.CallOption) (*DeleteInfoResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteInfoResponse)
+	err := c.cc.Invoke(ctx, StorageService_DeleteBankCardDetails_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *storageServiceClient) StartUpload(ctx context.Context, in *StartUploadRequest, opts ...grpc.CallOption) (*StartUploadResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StartUploadResponse)
+	err := c.cc.Invoke(ctx, StorageService_StartUpload_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *storageServiceClient) UploadChunks(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[UploadChunkRequest, UploadChunksResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &StorageService_ServiceDesc.Streams[0], StorageService_UploadChunks_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[UploadChunkRequest, UploadChunksResponse]{ClientStream: stream}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type StorageService_UploadChunksClient = grpc.ClientStreamingClient[UploadChunkRequest, UploadChunksResponse]
+
+func (c *storageServiceClient) CommitUpload(ctx context.Context, in *CommitUploadRequest, opts ...grpc.CallOption) (*CommitUploadResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CommitUploadResponse)
+	err := c.cc.Invoke(ctx, StorageService_CommitUpload_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *storageServiceClient) GetFileMeta(ctx context.Context, in *GetFileMetaRequest, opts ...grpc.CallOption) (*GetFileMetaResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetFileMetaResponse)
+	err := c.cc.Invoke(ctx, StorageService_GetFileMeta_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *storageServiceClient) DownloadFile(ctx context.Context, in *DownloadFileRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[DownloadFileChunk], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &StorageService_ServiceDesc.Streams[1], StorageService_DownloadFile_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[DownloadFileRequest, DownloadFileChunk]{ClientStream: stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -296,12 +391,12 @@ func (c *storageServiceClient) GetFileChunkInfo(ctx context.Context, in *Request
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type StorageService_GetFileChunkInfoClient = grpc.ServerStreamingClient[FileChunkInfo]
+type StorageService_DownloadFileClient = grpc.ServerStreamingClient[DownloadFileChunk]
 
-func (c *storageServiceClient) GetBankCardDetails(ctx context.Context, in *RequestCardNumber, opts ...grpc.CallOption) (*BankCardDetailsList, error) {
+func (c *storageServiceClient) DeleteFile(ctx context.Context, in *DeleteFileRequest, opts ...grpc.CallOption) (*DeleteInfoResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(BankCardDetailsList)
-	err := c.cc.Invoke(ctx, StorageService_GetBankCardDetails_FullMethodName, in, out, cOpts...)
+	out := new(DeleteInfoResponse)
+	err := c.cc.Invoke(ctx, StorageService_DeleteFile_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -312,16 +407,24 @@ func (c *storageServiceClient) GetBankCardDetails(ctx context.Context, in *Reque
 // All implementations must embed UnimplementedStorageServiceServer
 // for forward compatibility.
 type StorageServiceServer interface {
-	CreateAuthInfo(context.Context, *CreateAuthInfoRequest) (*CreateAuthInfoResponse, error)
-	GetAuthInfo(context.Context, *GetAuthInfoRequest) (*GetAuthInfoResponse, error)
-	UpdateAuthInfo(context.Context, *UpdateAuthInfoRequest) (*UpdateAuthInfoResponse, error)
-	DeleteAuthInfo(context.Context, *DeleteAuthInfoRequest) (*DeleteAuthInfoResponse, error)
-	SetTextInfo(context.Context, *TextInfo) (*emptypb.Empty, error)
-	SetFileChunkInfo(grpc.ClientStreamingServer[FileChunkInfo, emptypb.Empty]) error
-	SetBankCardDetails(context.Context, *BankCardDetails) (*emptypb.Empty, error)
-	GetTextInfo(context.Context, *RequestTitle) (*TextInfoList, error)
-	GetFileChunkInfo(*RequestFileName, grpc.ServerStreamingServer[FileChunkInfo]) error
-	GetBankCardDetails(context.Context, *RequestCardNumber) (*BankCardDetailsList, error)
+	CreateAuthInfo(context.Context, *AuthInfo) (*CreateInfoResponse, error)
+	GetAuthInfo(context.Context, *GetInfoRequest) (*StoredAuthInfo, error)
+	UpdateAuthInfo(context.Context, *UpdateAuthInfoRequest) (*UpdateInfoResponse, error)
+	DeleteAuthInfo(context.Context, *DeleteInfoRequest) (*DeleteInfoResponse, error)
+	CreateTextInfo(context.Context, *TextInfo) (*CreateInfoResponse, error)
+	GetTextInfo(context.Context, *GetInfoRequest) (*StoredTextInfo, error)
+	UpdateTextInfo(context.Context, *UpdateTextInfoRequest) (*UpdateInfoResponse, error)
+	DeleteTextInfo(context.Context, *DeleteInfoRequest) (*DeleteInfoResponse, error)
+	CreateBankCardDetails(context.Context, *BankCardDetails) (*CreateInfoResponse, error)
+	GetBankCardDetails(context.Context, *GetInfoRequest) (*StoredBankCardDetails, error)
+	UpdateBankCardDetails(context.Context, *UpdateBankCardDetailsRequest) (*UpdateInfoResponse, error)
+	DeleteBankCardDetails(context.Context, *DeleteInfoRequest) (*DeleteInfoResponse, error)
+	StartUpload(context.Context, *StartUploadRequest) (*StartUploadResponse, error)
+	UploadChunks(grpc.ClientStreamingServer[UploadChunkRequest, UploadChunksResponse]) error
+	CommitUpload(context.Context, *CommitUploadRequest) (*CommitUploadResponse, error)
+	GetFileMeta(context.Context, *GetFileMetaRequest) (*GetFileMetaResponse, error)
+	DownloadFile(*DownloadFileRequest, grpc.ServerStreamingServer[DownloadFileChunk]) error
+	DeleteFile(context.Context, *DeleteFileRequest) (*DeleteInfoResponse, error)
 	mustEmbedUnimplementedStorageServiceServer()
 }
 
@@ -332,35 +435,59 @@ type StorageServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedStorageServiceServer struct{}
 
-func (UnimplementedStorageServiceServer) CreateAuthInfo(context.Context, *CreateAuthInfoRequest) (*CreateAuthInfoResponse, error) {
+func (UnimplementedStorageServiceServer) CreateAuthInfo(context.Context, *AuthInfo) (*CreateInfoResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateAuthInfo not implemented")
 }
-func (UnimplementedStorageServiceServer) GetAuthInfo(context.Context, *GetAuthInfoRequest) (*GetAuthInfoResponse, error) {
+func (UnimplementedStorageServiceServer) GetAuthInfo(context.Context, *GetInfoRequest) (*StoredAuthInfo, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetAuthInfo not implemented")
 }
-func (UnimplementedStorageServiceServer) UpdateAuthInfo(context.Context, *UpdateAuthInfoRequest) (*UpdateAuthInfoResponse, error) {
+func (UnimplementedStorageServiceServer) UpdateAuthInfo(context.Context, *UpdateAuthInfoRequest) (*UpdateInfoResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateAuthInfo not implemented")
 }
-func (UnimplementedStorageServiceServer) DeleteAuthInfo(context.Context, *DeleteAuthInfoRequest) (*DeleteAuthInfoResponse, error) {
+func (UnimplementedStorageServiceServer) DeleteAuthInfo(context.Context, *DeleteInfoRequest) (*DeleteInfoResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteAuthInfo not implemented")
 }
-func (UnimplementedStorageServiceServer) SetTextInfo(context.Context, *TextInfo) (*emptypb.Empty, error) {
-	return nil, status.Error(codes.Unimplemented, "method SetTextInfo not implemented")
+func (UnimplementedStorageServiceServer) CreateTextInfo(context.Context, *TextInfo) (*CreateInfoResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateTextInfo not implemented")
 }
-func (UnimplementedStorageServiceServer) SetFileChunkInfo(grpc.ClientStreamingServer[FileChunkInfo, emptypb.Empty]) error {
-	return status.Error(codes.Unimplemented, "method SetFileChunkInfo not implemented")
-}
-func (UnimplementedStorageServiceServer) SetBankCardDetails(context.Context, *BankCardDetails) (*emptypb.Empty, error) {
-	return nil, status.Error(codes.Unimplemented, "method SetBankCardDetails not implemented")
-}
-func (UnimplementedStorageServiceServer) GetTextInfo(context.Context, *RequestTitle) (*TextInfoList, error) {
+func (UnimplementedStorageServiceServer) GetTextInfo(context.Context, *GetInfoRequest) (*StoredTextInfo, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetTextInfo not implemented")
 }
-func (UnimplementedStorageServiceServer) GetFileChunkInfo(*RequestFileName, grpc.ServerStreamingServer[FileChunkInfo]) error {
-	return status.Error(codes.Unimplemented, "method GetFileChunkInfo not implemented")
+func (UnimplementedStorageServiceServer) UpdateTextInfo(context.Context, *UpdateTextInfoRequest) (*UpdateInfoResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateTextInfo not implemented")
 }
-func (UnimplementedStorageServiceServer) GetBankCardDetails(context.Context, *RequestCardNumber) (*BankCardDetailsList, error) {
+func (UnimplementedStorageServiceServer) DeleteTextInfo(context.Context, *DeleteInfoRequest) (*DeleteInfoResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteTextInfo not implemented")
+}
+func (UnimplementedStorageServiceServer) CreateBankCardDetails(context.Context, *BankCardDetails) (*CreateInfoResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateBankCardDetails not implemented")
+}
+func (UnimplementedStorageServiceServer) GetBankCardDetails(context.Context, *GetInfoRequest) (*StoredBankCardDetails, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetBankCardDetails not implemented")
+}
+func (UnimplementedStorageServiceServer) UpdateBankCardDetails(context.Context, *UpdateBankCardDetailsRequest) (*UpdateInfoResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateBankCardDetails not implemented")
+}
+func (UnimplementedStorageServiceServer) DeleteBankCardDetails(context.Context, *DeleteInfoRequest) (*DeleteInfoResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteBankCardDetails not implemented")
+}
+func (UnimplementedStorageServiceServer) StartUpload(context.Context, *StartUploadRequest) (*StartUploadResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method StartUpload not implemented")
+}
+func (UnimplementedStorageServiceServer) UploadChunks(grpc.ClientStreamingServer[UploadChunkRequest, UploadChunksResponse]) error {
+	return status.Error(codes.Unimplemented, "method UploadChunks not implemented")
+}
+func (UnimplementedStorageServiceServer) CommitUpload(context.Context, *CommitUploadRequest) (*CommitUploadResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CommitUpload not implemented")
+}
+func (UnimplementedStorageServiceServer) GetFileMeta(context.Context, *GetFileMetaRequest) (*GetFileMetaResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetFileMeta not implemented")
+}
+func (UnimplementedStorageServiceServer) DownloadFile(*DownloadFileRequest, grpc.ServerStreamingServer[DownloadFileChunk]) error {
+	return status.Error(codes.Unimplemented, "method DownloadFile not implemented")
+}
+func (UnimplementedStorageServiceServer) DeleteFile(context.Context, *DeleteFileRequest) (*DeleteInfoResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteFile not implemented")
 }
 func (UnimplementedStorageServiceServer) mustEmbedUnimplementedStorageServiceServer() {}
 func (UnimplementedStorageServiceServer) testEmbeddedByValue()                        {}
@@ -384,7 +511,7 @@ func RegisterStorageServiceServer(s grpc.ServiceRegistrar, srv StorageServiceSer
 }
 
 func _StorageService_CreateAuthInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateAuthInfoRequest)
+	in := new(AuthInfo)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -396,13 +523,13 @@ func _StorageService_CreateAuthInfo_Handler(srv interface{}, ctx context.Context
 		FullMethod: StorageService_CreateAuthInfo_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(StorageServiceServer).CreateAuthInfo(ctx, req.(*CreateAuthInfoRequest))
+		return srv.(StorageServiceServer).CreateAuthInfo(ctx, req.(*AuthInfo))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _StorageService_GetAuthInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetAuthInfoRequest)
+	in := new(GetInfoRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -414,7 +541,7 @@ func _StorageService_GetAuthInfo_Handler(srv interface{}, ctx context.Context, d
 		FullMethod: StorageService_GetAuthInfo_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(StorageServiceServer).GetAuthInfo(ctx, req.(*GetAuthInfoRequest))
+		return srv.(StorageServiceServer).GetAuthInfo(ctx, req.(*GetInfoRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -438,7 +565,7 @@ func _StorageService_UpdateAuthInfo_Handler(srv interface{}, ctx context.Context
 }
 
 func _StorageService_DeleteAuthInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteAuthInfoRequest)
+	in := new(DeleteInfoRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -450,56 +577,31 @@ func _StorageService_DeleteAuthInfo_Handler(srv interface{}, ctx context.Context
 		FullMethod: StorageService_DeleteAuthInfo_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(StorageServiceServer).DeleteAuthInfo(ctx, req.(*DeleteAuthInfoRequest))
+		return srv.(StorageServiceServer).DeleteAuthInfo(ctx, req.(*DeleteInfoRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _StorageService_SetTextInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _StorageService_CreateTextInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(TextInfo)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(StorageServiceServer).SetTextInfo(ctx, in)
+		return srv.(StorageServiceServer).CreateTextInfo(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: StorageService_SetTextInfo_FullMethodName,
+		FullMethod: StorageService_CreateTextInfo_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(StorageServiceServer).SetTextInfo(ctx, req.(*TextInfo))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _StorageService_SetFileChunkInfo_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(StorageServiceServer).SetFileChunkInfo(&grpc.GenericServerStream[FileChunkInfo, emptypb.Empty]{ServerStream: stream})
-}
-
-// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type StorageService_SetFileChunkInfoServer = grpc.ClientStreamingServer[FileChunkInfo, emptypb.Empty]
-
-func _StorageService_SetBankCardDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(BankCardDetails)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(StorageServiceServer).SetBankCardDetails(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: StorageService_SetBankCardDetails_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(StorageServiceServer).SetBankCardDetails(ctx, req.(*BankCardDetails))
+		return srv.(StorageServiceServer).CreateTextInfo(ctx, req.(*TextInfo))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _StorageService_GetTextInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RequestTitle)
+	in := new(GetInfoRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -511,24 +613,67 @@ func _StorageService_GetTextInfo_Handler(srv interface{}, ctx context.Context, d
 		FullMethod: StorageService_GetTextInfo_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(StorageServiceServer).GetTextInfo(ctx, req.(*RequestTitle))
+		return srv.(StorageServiceServer).GetTextInfo(ctx, req.(*GetInfoRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _StorageService_GetFileChunkInfo_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(RequestFileName)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
+func _StorageService_UpdateTextInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateTextInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
 	}
-	return srv.(StorageServiceServer).GetFileChunkInfo(m, &grpc.GenericServerStream[RequestFileName, FileChunkInfo]{ServerStream: stream})
+	if interceptor == nil {
+		return srv.(StorageServiceServer).UpdateTextInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StorageService_UpdateTextInfo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StorageServiceServer).UpdateTextInfo(ctx, req.(*UpdateTextInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
-// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type StorageService_GetFileChunkInfoServer = grpc.ServerStreamingServer[FileChunkInfo]
+func _StorageService_DeleteTextInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StorageServiceServer).DeleteTextInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StorageService_DeleteTextInfo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StorageServiceServer).DeleteTextInfo(ctx, req.(*DeleteInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StorageService_CreateBankCardDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BankCardDetails)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StorageServiceServer).CreateBankCardDetails(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StorageService_CreateBankCardDetails_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StorageServiceServer).CreateBankCardDetails(ctx, req.(*BankCardDetails))
+	}
+	return interceptor(ctx, in, info, handler)
+}
 
 func _StorageService_GetBankCardDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RequestCardNumber)
+	in := new(GetInfoRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -540,7 +685,133 @@ func _StorageService_GetBankCardDetails_Handler(srv interface{}, ctx context.Con
 		FullMethod: StorageService_GetBankCardDetails_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(StorageServiceServer).GetBankCardDetails(ctx, req.(*RequestCardNumber))
+		return srv.(StorageServiceServer).GetBankCardDetails(ctx, req.(*GetInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StorageService_UpdateBankCardDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateBankCardDetailsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StorageServiceServer).UpdateBankCardDetails(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StorageService_UpdateBankCardDetails_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StorageServiceServer).UpdateBankCardDetails(ctx, req.(*UpdateBankCardDetailsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StorageService_DeleteBankCardDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StorageServiceServer).DeleteBankCardDetails(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StorageService_DeleteBankCardDetails_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StorageServiceServer).DeleteBankCardDetails(ctx, req.(*DeleteInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StorageService_StartUpload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StartUploadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StorageServiceServer).StartUpload(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StorageService_StartUpload_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StorageServiceServer).StartUpload(ctx, req.(*StartUploadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StorageService_UploadChunks_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(StorageServiceServer).UploadChunks(&grpc.GenericServerStream[UploadChunkRequest, UploadChunksResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type StorageService_UploadChunksServer = grpc.ClientStreamingServer[UploadChunkRequest, UploadChunksResponse]
+
+func _StorageService_CommitUpload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CommitUploadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StorageServiceServer).CommitUpload(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StorageService_CommitUpload_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StorageServiceServer).CommitUpload(ctx, req.(*CommitUploadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StorageService_GetFileMeta_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFileMetaRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StorageServiceServer).GetFileMeta(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StorageService_GetFileMeta_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StorageServiceServer).GetFileMeta(ctx, req.(*GetFileMetaRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StorageService_DownloadFile_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DownloadFileRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(StorageServiceServer).DownloadFile(m, &grpc.GenericServerStream[DownloadFileRequest, DownloadFileChunk]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type StorageService_DownloadFileServer = grpc.ServerStreamingServer[DownloadFileChunk]
+
+func _StorageService_DeleteFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteFileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StorageServiceServer).DeleteFile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StorageService_DeleteFile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StorageServiceServer).DeleteFile(ctx, req.(*DeleteFileRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -569,31 +840,63 @@ var StorageService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _StorageService_DeleteAuthInfo_Handler,
 		},
 		{
-			MethodName: "SetTextInfo",
-			Handler:    _StorageService_SetTextInfo_Handler,
-		},
-		{
-			MethodName: "SetBankCardDetails",
-			Handler:    _StorageService_SetBankCardDetails_Handler,
+			MethodName: "CreateTextInfo",
+			Handler:    _StorageService_CreateTextInfo_Handler,
 		},
 		{
 			MethodName: "GetTextInfo",
 			Handler:    _StorageService_GetTextInfo_Handler,
 		},
 		{
+			MethodName: "UpdateTextInfo",
+			Handler:    _StorageService_UpdateTextInfo_Handler,
+		},
+		{
+			MethodName: "DeleteTextInfo",
+			Handler:    _StorageService_DeleteTextInfo_Handler,
+		},
+		{
+			MethodName: "CreateBankCardDetails",
+			Handler:    _StorageService_CreateBankCardDetails_Handler,
+		},
+		{
 			MethodName: "GetBankCardDetails",
 			Handler:    _StorageService_GetBankCardDetails_Handler,
+		},
+		{
+			MethodName: "UpdateBankCardDetails",
+			Handler:    _StorageService_UpdateBankCardDetails_Handler,
+		},
+		{
+			MethodName: "DeleteBankCardDetails",
+			Handler:    _StorageService_DeleteBankCardDetails_Handler,
+		},
+		{
+			MethodName: "StartUpload",
+			Handler:    _StorageService_StartUpload_Handler,
+		},
+		{
+			MethodName: "CommitUpload",
+			Handler:    _StorageService_CommitUpload_Handler,
+		},
+		{
+			MethodName: "GetFileMeta",
+			Handler:    _StorageService_GetFileMeta_Handler,
+		},
+		{
+			MethodName: "DeleteFile",
+			Handler:    _StorageService_DeleteFile_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "SetFileChunkInfo",
-			Handler:       _StorageService_SetFileChunkInfo_Handler,
+			StreamName:    "UploadChunks",
+			Handler:       _StorageService_UploadChunks_Handler,
 			ClientStreams: true,
 		},
 		{
-			StreamName:    "GetFileChunkInfo",
-			Handler:       _StorageService_GetFileChunkInfo_Handler,
+			StreamName:    "DownloadFile",
+			Handler:       _StorageService_DownloadFile_Handler,
 			ServerStreams: true,
 		},
 	},

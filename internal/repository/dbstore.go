@@ -16,12 +16,20 @@ type StoreRepository interface {
 	GetAuthData(ctx context.Context, userID, authID string) (*model.AuthData, error)
 	UpdateAuthData(ctx context.Context, auth *model.AuthData, expectedVersion int64) (int64, error)
 	DeleteAuthData(ctx context.Context, userID, authID string, expectedVersion int64) error
-	SaveFileChunk(ctx context.Context, user string, file *model.FileChunk) error
-	SaveTextData(ctx context.Context, user string, text *model.TextData) error
-	SaveBankCardData(ctx context.Context, user string, bankCard *model.BankCardData) error
-	GetFileChunk(ctx context.Context, user string, fileName string, chunkNum int) (*model.FileChunk, error)
-	GetTextData(ctx context.Context, user string, title string) ([]*model.TextData, error)
-	GetBankCardData(ctx context.Context, user string, encryptedNumber uint32) ([]*model.BankCardData, error)
+	StartUpload(ctx context.Context, userID string, fileID string, expectedVersion int64, filename string, meta map[string]string, newID func() string) (string, string, error)
+	PutUploadChunk(ctx context.Context, userID string, uploadID string, chunkNo int64, data []byte) error
+	CommitUpload(ctx context.Context, userID string, uploadID string, fileID string, expectedVersion int64, checksum string) (string, int64, error)
+	GetFileMeta(ctx context.Context, userID string, fileID string) (*model.FileMeta, error)
+	StreamFileChunks(ctx context.Context, userID string, fileID string, version int64, fn func(chunkNo int64, data []byte) error) error
+	DeleteFile(ctx context.Context, userID string, fileID string, expectedVersion int64) error
+	CreateTextData(ctx context.Context, text *model.TextData) (int64, error)
+	GetTextData(ctx context.Context, userID, textID string) (*model.TextData, error)
+	UpdateTextData(ctx context.Context, text *model.TextData, expectedVersion int64) (int64, error)
+	DeleteTextData(ctx context.Context, userID, textID string, expectedVersion int64) error
+	CreateBankCardData(ctx context.Context, card *model.BankCardData) (int64, error)
+	GetBankCardData(ctx context.Context, userID, cardID string) (*model.BankCardData, error)
+	UpdateBankCardData(ctx context.Context, card *model.BankCardData, expectedVersion int64) (int64, error)
+	DeleteBankCardData(ctx context.Context, userID, cardID string, expectedVersion int64) error
 }
 
 type DBStore struct {

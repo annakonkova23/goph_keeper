@@ -27,36 +27,86 @@ CREATE INDEX idx_auth_data_user_id ON storage.auth_data(user_id);
 CREATE INDEX idx_auth_data_alive ON storage.auth_data(user_id, id) WHERE deleted_at IS NULL;
 
 
-CREATE TABLE storage.file_data (
-    user_login VARCHAR(1000),
-    file_name varchar(1000),
-    chunk_num INT NOT NULL,
-    data BYTEA NOT NULL,
-    meta JSON,
-    created_at TIMESTAMP DEFAULT NOW(),
-    primary key (user_login, file_name, chunk_num),
-    constraint uq_file_data unique(user_login, file_name,chunk_num)
-);
 
 
 CREATE TABLE storage.text_data (
-    user_login VARCHAR(1000),
-    title varchar(1000),
+    id UUID PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     data text NOT NULL,
-    created_at TIMESTAMP DEFAULT NOW(),
-    meta JSON
-    primary key (user,  title),
-    constraint uq_file_data unique(user_login, file_name)
+    meta JSONB NOT NULL DEFAULT '{}'::jsonb,
+    version BIGINT NOT NULL DEFAULT 1,
+    deleted_at TIMESTAMPTZ NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+CREATE INDEX idx_text_data_user_id ON storage.text_data(user_id);
+CREATE INDEX idx_text_data_alive ON storage.text_data(user_id, id) WHERE deleted_at IS NULL;
+
+
 CREATE TABLE storage.bank_card_data (
-    user_login VARCHAR(1000),
+    id UUID PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     last4 int,
     number_card varchar(1000),
     exp_month int NOT NULL,
     exp_year int NOT NULL,
     owner varchar(1000),
-    meta JSON,
-    primary key (user_login, number_card),
-    constraint uq_bank_card_data unique(user_login, number_card)
+    meta JSONB NOT NULL DEFAULT '{}'::jsonb,
+    version BIGINT NOT NULL DEFAULT 1,
+    deleted_at TIMESTAMPTZ NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_bank_card_data_user_id ON storage.bank_card_data(user_id);
+CREATE INDEX idx_bank_card_data_alive ON storage.bank_card_data(user_id, id) WHERE deleted_at IS NULL;
+
+
+CREATE TABLE storage.files (
+    id UUID PRIMARY KEY,
+    user_id UUID NOT NULL,
+    current_version BIGINT NOT NULL DEFAULT 0,
+    deleted_at TIMESTAMPTZ NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE storage.uploads (
+    id UUID PRIMARY KEY,
+    file_id UUID NOT NULL REFERENCES files(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL,
+    expected_version BIGINT NOT NULL,
+    filename TEXT NOT NULL,
+    meta JSONB NOT NULL DEFAULT '{}'::jsonb,
+    status TEXT NOT NULL CHECK (status IN ('pending', 'committed')),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE storage.pload_chunks (
+    upload_id UUID NOT NULL REFERENCES uploads(id) ON DELETE CASCADE,
+    chunk_no BIGINT NOT NULL,
+    data BYTEA NOT NULL,
+    size_bytes BIGINT NOT NULL,
+    PRIMARY KEY (upload_id, chunk_no)
+);
+
+CREATE TABLE storage.file_versions (
+    file_id UUID NOT NULL REFERENCES files(id) ON DELETE CASCADE,
+    version BIGINT NOT NULL,
+    filename TEXT NOT NULL,
+    size_bytes BIGINT NOT NULL,
+    checksum TEXT NOT NULL DEFAULT '',
+    meta JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (file_id, version)
+);
+
+CREATE TABLE storage.file_chunks (
+    file_id UUID NOT NULL REFERENCES files(id) ON DELETE CASCADE,
+    version BIGINT NOT NULL,
+    chunk_no BIGINT NOT NULL,
+    data BYTEA NOT NULL,
+    size_bytes BIGINT NOT NULL,
+    PRIMARY KEY (file_id, version, chunk_no),
+    FOREIGN KEY (file_id, version) REFERENCES file_versions(file_id, version) ON DELETE CASCADE
 );

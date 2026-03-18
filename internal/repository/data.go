@@ -77,20 +77,6 @@ func (ds *DBStore) DeleteAuthData(ctx context.Context, userID, authID string, ex
 	return nil
 }
 
-func (ds *DBStore) SaveFileChunk(ctx context.Context, user, file model.FileChunk) error {
-	metaJSON, err := json.Marshal(file.Meta)
-	if err != nil {
-		return fmt.Errorf("failed to marshal meta: %w", err)
-	}
-
-	_, err = ds.database.ExecContext(ctx, insertFileChunk,
-		user, file.FileName, file.ChunkNum, file.Data, metaJSON)
-	if err != nil {
-		return fmt.Errorf("failed to insert file chunk: %w", err)
-	}
-	return nil
-}
-
 func (ds *DBStore) SaveTextData(ctx context.Context, user, text model.TextData) error {
 	metaJSON, err := json.Marshal(text.Meta)
 	if err != nil {
@@ -117,28 +103,6 @@ func (ds *DBStore) SaveBankCardData(ctx context.Context, user string, bankCard m
 		return fmt.Errorf("failed to insert bank card data: %w", err)
 	}
 	return nil
-}
-
-func (ds *DBStore) GetFileChunk(ctx context.Context, user, fileName string, chunkNum int) (*model.FileChunk, error) {
-	var chunk model.FileChunk
-	var metaJSON []byte
-
-	err := ds.database.QueryRowContext(ctx, selectFileData, user, fileName, chunkNum).Scan(
-		&chunk.FileName, &chunk.ChunkNum, &chunk.Data, &metaJSON,
-	)
-
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, ErrorNotContent
-		}
-		return nil, fmt.Errorf("failed to get file chunk: %w", err)
-	}
-
-	if err = json.Unmarshal(metaJSON, &chunk.Meta); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal meta: %w", err)
-	}
-
-	return &chunk, nil
 }
 
 func (ds *DBStore) GetTextData(ctx context.Context, user, title string) ([]*model.TextData, error) {

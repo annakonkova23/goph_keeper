@@ -1,7 +1,6 @@
 syntax = "proto3";
 
 
-import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 
 package api;
@@ -44,21 +43,15 @@ message StoredAuthInfo {
   google.protobuf.Timestamp updated_at = 4;
 }
 
-message CreateAuthInfoRequest {
-  AuthInfo data = 1;
-}
 
-message CreateAuthInfoResponse {
+
+message CreateInfoResponse {
   string id = 1;
   int64 version = 2;
 }
 
-message GetAuthInfoRequest {
+message GetInfoRequest {
   string id = 1;
-}
-
-message GetAuthInfoResponse {
-  StoredAuthInfo item = 1;
 }
 
 message UpdateAuthInfoRequest {
@@ -67,33 +60,37 @@ message UpdateAuthInfoRequest {
   int64 version = 3; 
 }
 
-message UpdateAuthInfoResponse {
+message UpdateInfoResponse {
   int64 new_version = 1;
 }
 
-message DeleteAuthInfoRequest {
+message DeleteInfoRequest {
   string id = 1;
   int64 version = 2;
 }
 
-message DeleteAuthInfoResponse {}
+message DeleteInfoResponse {}
 
 
 message TextInfo {
-  string title=1;
   string text=2;
   map<string, string> meta = 3;
 }
 
-message TextInfoList {
-  repeated TextInfo list=1;
+message StoredTextInfo {
+  string id = 1;
+  TextInfo data = 2;
+  int64 version = 3;
+  google.protobuf.Timestamp updated_at = 4;
 }
 
-message FileChunkInfo {
-  string fileName=1;
-  bytes data=2;
-  map<string, string> meta = 3;
+
+message UpdateTextInfoRequest {
+  string id = 1;
+  TextInfo data = 2;
+  int64 version = 3; 
 }
+
 
 message BankCardDetails {
   string number=1;
@@ -103,36 +100,112 @@ message BankCardDetails {
   map<string, string> meta = 6;
 }
 
-message BankCardDetailsList{
-  repeated BankCardDetails list=1;
+message StoredBankCardDetails {
+  string id = 1;
+  BankCardDetails data = 2;
+  int64 version = 3;
+  google.protobuf.Timestamp updated_at = 4;
 }
 
-message RequestSite {
-  string site=1;
+message UpdateBankCardDetailsRequest {
+  string id = 1;
+  BankCardDetails data = 2;
+  int64 version = 3; 
 }
 
-message RequestTitle {
-  string title=1;
+message StartUploadRequest {
+  string file_id = 1;          // пусто => создать новый логический файл
+  int64 expected_version = 2;  // 0 для нового файла
+  string filename = 3;
+  map<string, string> meta = 4;
 }
 
-message RequestFileName {
-  string fileName=1;
+message StartUploadResponse {
+  string upload_id = 1;
+  string file_id = 2;
 }
 
-message RequestCardNumber {
-  uint32 last4=1;
+message UploadChunkRequest {
+  string upload_id = 1;
+  int64 chunk_no = 2;
+  bytes data = 3;
 }
+
+message UploadChunksResponse {
+  string upload_id = 1;
+  int64 received_chunks = 2;
+  int64 total_bytes = 3;
+}
+
+message CommitUploadRequest {
+  string upload_id = 1;
+  string file_id = 2;
+  int64 expected_version = 3;
+  string checksum = 4; // опционально, если считаешь на клиенте
+}
+
+message CommitUploadResponse {
+  string file_id = 1;
+  int64 new_version = 2;
+}
+
+message FileMeta {
+  string file_id = 1;
+  int64 current_version = 2;
+  string filename = 3;
+  int64 size_bytes = 4;
+  string checksum = 5;
+  map<string, string> meta = 6;
+}
+
+message GetFileMetaRequest {
+  string file_id = 1;
+}
+
+message GetFileMetaResponse {
+  FileMeta file = 1;
+}
+
+message DownloadFileRequest {
+  string file_id = 1;
+  int64 version = 2; // 0 => current_version
+}
+
+message DownloadFileChunk {
+  int64 chunk_no = 1;
+  bytes data = 2;
+}
+
+message DeleteFileRequest {
+  string file_id = 1;
+  int64 expected_version = 2;
+}
+
 
 
 service StorageService {
-  rpc CreateAuthInfo(CreateAuthInfoRequest) returns (CreateAuthInfoResponse);
-  rpc GetAuthInfo(GetAuthInfoRequest) returns (GetAuthInfoResponse);
-  rpc UpdateAuthInfo(UpdateAuthInfoRequest) returns (UpdateAuthInfoResponse);
-  rpc DeleteAuthInfo(DeleteAuthInfoRequest) returns (DeleteAuthInfoResponse);
-  rpc SetTextInfo(TextInfo) returns (google.protobuf.Empty); 
-  rpc SetFileChunkInfo(stream FileChunkInfo) returns (google.protobuf.Empty); 
-  rpc SetBankCardDetails(BankCardDetails) returns (google.protobuf.Empty);
-  rpc GetTextInfo(RequestTitle) returns (TextInfoList);
-  rpc GetFileChunkInfo(RequestFileName) returns (stream FileChunkInfo);
-  rpc GetBankCardDetails(RequestCardNumber) returns (BankCardDetailsList);
+  rpc CreateAuthInfo(AuthInfo) returns (CreateInfoResponse);
+  rpc GetAuthInfo(GetInfoRequest) returns (StoredAuthInfo);
+  rpc UpdateAuthInfo(UpdateAuthInfoRequest) returns (UpdateInfoResponse);
+  rpc DeleteAuthInfo(DeleteInfoRequest) returns (DeleteInfoResponse);
+
+  rpc CreateTextInfo(TextInfo) returns (CreateInfoResponse);
+  rpc GetTextInfo(GetInfoRequest) returns (StoredTextInfo);
+  rpc UpdateTextInfo(UpdateTextInfoRequest) returns (UpdateInfoResponse);
+  rpc DeleteTextInfo(DeleteInfoRequest) returns (DeleteInfoResponse);
+  
+  rpc CreateBankCardDetails(BankCardDetails) returns (CreateInfoResponse);
+  rpc GetBankCardDetails(GetInfoRequest) returns (StoredBankCardDetails);
+  rpc UpdateBankCardDetails(UpdateBankCardDetailsRequest) returns (UpdateInfoResponse);
+  rpc DeleteBankCardDetails(DeleteInfoRequest) returns (DeleteInfoResponse);
+
+
+  rpc StartUpload(StartUploadRequest) returns (StartUploadResponse);
+  rpc UploadChunks(stream UploadChunkRequest) returns (UploadChunksResponse);
+  rpc CommitUpload(CommitUploadRequest) returns (CommitUploadResponse);
+  rpc GetFileMeta(GetFileMetaRequest) returns (GetFileMetaResponse);
+  rpc DownloadFile(DownloadFileRequest) returns (stream DownloadFileChunk);
+  rpc DeleteFile(DeleteFileRequest) returns (DeleteInfoResponse);
+
+
 }

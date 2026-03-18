@@ -9,7 +9,6 @@ package keeperservice
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
@@ -343,51 +342,7 @@ func (x *StoredAuthInfo) GetUpdatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
-type CreateAuthInfoRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Data          *AuthInfo              `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *CreateAuthInfoRequest) Reset() {
-	*x = CreateAuthInfoRequest{}
-	mi := &file_keeper_proto_msgTypes[6]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *CreateAuthInfoRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CreateAuthInfoRequest) ProtoMessage() {}
-
-func (x *CreateAuthInfoRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_keeper_proto_msgTypes[6]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CreateAuthInfoRequest.ProtoReflect.Descriptor instead.
-func (*CreateAuthInfoRequest) Descriptor() ([]byte, []int) {
-	return file_keeper_proto_rawDescGZIP(), []int{6}
-}
-
-func (x *CreateAuthInfoRequest) GetData() *AuthInfo {
-	if x != nil {
-		return x.Data
-	}
-	return nil
-}
-
-type CreateAuthInfoResponse struct {
+type CreateInfoResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Version       int64                  `protobuf:"varint,2,opt,name=version,proto3" json:"version,omitempty"`
@@ -395,21 +350,21 @@ type CreateAuthInfoResponse struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *CreateAuthInfoResponse) Reset() {
-	*x = CreateAuthInfoResponse{}
-	mi := &file_keeper_proto_msgTypes[7]
+func (x *CreateInfoResponse) Reset() {
+	*x = CreateInfoResponse{}
+	mi := &file_keeper_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *CreateAuthInfoResponse) String() string {
+func (x *CreateInfoResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CreateAuthInfoResponse) ProtoMessage() {}
+func (*CreateInfoResponse) ProtoMessage() {}
 
-func (x *CreateAuthInfoResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_keeper_proto_msgTypes[7]
+func (x *CreateInfoResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_keeper_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -420,47 +375,47 @@ func (x *CreateAuthInfoResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CreateAuthInfoResponse.ProtoReflect.Descriptor instead.
-func (*CreateAuthInfoResponse) Descriptor() ([]byte, []int) {
-	return file_keeper_proto_rawDescGZIP(), []int{7}
+// Deprecated: Use CreateInfoResponse.ProtoReflect.Descriptor instead.
+func (*CreateInfoResponse) Descriptor() ([]byte, []int) {
+	return file_keeper_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *CreateAuthInfoResponse) GetId() string {
+func (x *CreateInfoResponse) GetId() string {
 	if x != nil {
 		return x.Id
 	}
 	return ""
 }
 
-func (x *CreateAuthInfoResponse) GetVersion() int64 {
+func (x *CreateInfoResponse) GetVersion() int64 {
 	if x != nil {
 		return x.Version
 	}
 	return 0
 }
 
-type GetAuthInfoRequest struct {
+type GetInfoRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetAuthInfoRequest) Reset() {
-	*x = GetAuthInfoRequest{}
-	mi := &file_keeper_proto_msgTypes[8]
+func (x *GetInfoRequest) Reset() {
+	*x = GetInfoRequest{}
+	mi := &file_keeper_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetAuthInfoRequest) String() string {
+func (x *GetInfoRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetAuthInfoRequest) ProtoMessage() {}
+func (*GetInfoRequest) ProtoMessage() {}
 
-func (x *GetAuthInfoRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_keeper_proto_msgTypes[8]
+func (x *GetInfoRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_keeper_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -471,60 +426,16 @@ func (x *GetAuthInfoRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetAuthInfoRequest.ProtoReflect.Descriptor instead.
-func (*GetAuthInfoRequest) Descriptor() ([]byte, []int) {
-	return file_keeper_proto_rawDescGZIP(), []int{8}
+// Deprecated: Use GetInfoRequest.ProtoReflect.Descriptor instead.
+func (*GetInfoRequest) Descriptor() ([]byte, []int) {
+	return file_keeper_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *GetAuthInfoRequest) GetId() string {
+func (x *GetInfoRequest) GetId() string {
 	if x != nil {
 		return x.Id
 	}
 	return ""
-}
-
-type GetAuthInfoResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Item          *StoredAuthInfo        `protobuf:"bytes,1,opt,name=item,proto3" json:"item,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetAuthInfoResponse) Reset() {
-	*x = GetAuthInfoResponse{}
-	mi := &file_keeper_proto_msgTypes[9]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetAuthInfoResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetAuthInfoResponse) ProtoMessage() {}
-
-func (x *GetAuthInfoResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_keeper_proto_msgTypes[9]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetAuthInfoResponse.ProtoReflect.Descriptor instead.
-func (*GetAuthInfoResponse) Descriptor() ([]byte, []int) {
-	return file_keeper_proto_rawDescGZIP(), []int{9}
-}
-
-func (x *GetAuthInfoResponse) GetItem() *StoredAuthInfo {
-	if x != nil {
-		return x.Item
-	}
-	return nil
 }
 
 type UpdateAuthInfoRequest struct {
@@ -538,7 +449,7 @@ type UpdateAuthInfoRequest struct {
 
 func (x *UpdateAuthInfoRequest) Reset() {
 	*x = UpdateAuthInfoRequest{}
-	mi := &file_keeper_proto_msgTypes[10]
+	mi := &file_keeper_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -550,7 +461,7 @@ func (x *UpdateAuthInfoRequest) String() string {
 func (*UpdateAuthInfoRequest) ProtoMessage() {}
 
 func (x *UpdateAuthInfoRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_keeper_proto_msgTypes[10]
+	mi := &file_keeper_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -563,7 +474,7 @@ func (x *UpdateAuthInfoRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateAuthInfoRequest.ProtoReflect.Descriptor instead.
 func (*UpdateAuthInfoRequest) Descriptor() ([]byte, []int) {
-	return file_keeper_proto_rawDescGZIP(), []int{10}
+	return file_keeper_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *UpdateAuthInfoRequest) GetId() string {
@@ -587,28 +498,28 @@ func (x *UpdateAuthInfoRequest) GetVersion() int64 {
 	return 0
 }
 
-type UpdateAuthInfoResponse struct {
+type UpdateInfoResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	NewVersion    int64                  `protobuf:"varint,1,opt,name=new_version,json=newVersion,proto3" json:"new_version,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *UpdateAuthInfoResponse) Reset() {
-	*x = UpdateAuthInfoResponse{}
-	mi := &file_keeper_proto_msgTypes[11]
+func (x *UpdateInfoResponse) Reset() {
+	*x = UpdateInfoResponse{}
+	mi := &file_keeper_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *UpdateAuthInfoResponse) String() string {
+func (x *UpdateInfoResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*UpdateAuthInfoResponse) ProtoMessage() {}
+func (*UpdateInfoResponse) ProtoMessage() {}
 
-func (x *UpdateAuthInfoResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_keeper_proto_msgTypes[11]
+func (x *UpdateInfoResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_keeper_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -619,19 +530,19 @@ func (x *UpdateAuthInfoResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use UpdateAuthInfoResponse.ProtoReflect.Descriptor instead.
-func (*UpdateAuthInfoResponse) Descriptor() ([]byte, []int) {
-	return file_keeper_proto_rawDescGZIP(), []int{11}
+// Deprecated: Use UpdateInfoResponse.ProtoReflect.Descriptor instead.
+func (*UpdateInfoResponse) Descriptor() ([]byte, []int) {
+	return file_keeper_proto_rawDescGZIP(), []int{9}
 }
 
-func (x *UpdateAuthInfoResponse) GetNewVersion() int64 {
+func (x *UpdateInfoResponse) GetNewVersion() int64 {
 	if x != nil {
 		return x.NewVersion
 	}
 	return 0
 }
 
-type DeleteAuthInfoRequest struct {
+type DeleteInfoRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Version       int64                  `protobuf:"varint,2,opt,name=version,proto3" json:"version,omitempty"`
@@ -639,21 +550,21 @@ type DeleteAuthInfoRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *DeleteAuthInfoRequest) Reset() {
-	*x = DeleteAuthInfoRequest{}
-	mi := &file_keeper_proto_msgTypes[12]
+func (x *DeleteInfoRequest) Reset() {
+	*x = DeleteInfoRequest{}
+	mi := &file_keeper_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *DeleteAuthInfoRequest) String() string {
+func (x *DeleteInfoRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*DeleteAuthInfoRequest) ProtoMessage() {}
+func (*DeleteInfoRequest) ProtoMessage() {}
 
-func (x *DeleteAuthInfoRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_keeper_proto_msgTypes[12]
+func (x *DeleteInfoRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_keeper_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -664,46 +575,46 @@ func (x *DeleteAuthInfoRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use DeleteAuthInfoRequest.ProtoReflect.Descriptor instead.
-func (*DeleteAuthInfoRequest) Descriptor() ([]byte, []int) {
-	return file_keeper_proto_rawDescGZIP(), []int{12}
+// Deprecated: Use DeleteInfoRequest.ProtoReflect.Descriptor instead.
+func (*DeleteInfoRequest) Descriptor() ([]byte, []int) {
+	return file_keeper_proto_rawDescGZIP(), []int{10}
 }
 
-func (x *DeleteAuthInfoRequest) GetId() string {
+func (x *DeleteInfoRequest) GetId() string {
 	if x != nil {
 		return x.Id
 	}
 	return ""
 }
 
-func (x *DeleteAuthInfoRequest) GetVersion() int64 {
+func (x *DeleteInfoRequest) GetVersion() int64 {
 	if x != nil {
 		return x.Version
 	}
 	return 0
 }
 
-type DeleteAuthInfoResponse struct {
+type DeleteInfoResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *DeleteAuthInfoResponse) Reset() {
-	*x = DeleteAuthInfoResponse{}
-	mi := &file_keeper_proto_msgTypes[13]
+func (x *DeleteInfoResponse) Reset() {
+	*x = DeleteInfoResponse{}
+	mi := &file_keeper_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *DeleteAuthInfoResponse) String() string {
+func (x *DeleteInfoResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*DeleteAuthInfoResponse) ProtoMessage() {}
+func (*DeleteInfoResponse) ProtoMessage() {}
 
-func (x *DeleteAuthInfoResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_keeper_proto_msgTypes[13]
+func (x *DeleteInfoResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_keeper_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -714,14 +625,13 @@ func (x *DeleteAuthInfoResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use DeleteAuthInfoResponse.ProtoReflect.Descriptor instead.
-func (*DeleteAuthInfoResponse) Descriptor() ([]byte, []int) {
-	return file_keeper_proto_rawDescGZIP(), []int{13}
+// Deprecated: Use DeleteInfoResponse.ProtoReflect.Descriptor instead.
+func (*DeleteInfoResponse) Descriptor() ([]byte, []int) {
+	return file_keeper_proto_rawDescGZIP(), []int{11}
 }
 
 type TextInfo struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Title         string                 `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
 	Text          string                 `protobuf:"bytes,2,opt,name=text,proto3" json:"text,omitempty"`
 	Meta          map[string]string      `protobuf:"bytes,3,rep,name=meta,proto3" json:"meta,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields protoimpl.UnknownFields
@@ -730,7 +640,7 @@ type TextInfo struct {
 
 func (x *TextInfo) Reset() {
 	*x = TextInfo{}
-	mi := &file_keeper_proto_msgTypes[14]
+	mi := &file_keeper_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -742,7 +652,7 @@ func (x *TextInfo) String() string {
 func (*TextInfo) ProtoMessage() {}
 
 func (x *TextInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_keeper_proto_msgTypes[14]
+	mi := &file_keeper_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -755,14 +665,7 @@ func (x *TextInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TextInfo.ProtoReflect.Descriptor instead.
 func (*TextInfo) Descriptor() ([]byte, []int) {
-	return file_keeper_proto_rawDescGZIP(), []int{14}
-}
-
-func (x *TextInfo) GetTitle() string {
-	if x != nil {
-		return x.Title
-	}
-	return ""
+	return file_keeper_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *TextInfo) GetText() string {
@@ -779,28 +682,31 @@ func (x *TextInfo) GetMeta() map[string]string {
 	return nil
 }
 
-type TextInfoList struct {
+type StoredTextInfo struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	List          []*TextInfo            `protobuf:"bytes,1,rep,name=list,proto3" json:"list,omitempty"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Data          *TextInfo              `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`
+	Version       int64                  `protobuf:"varint,3,opt,name=version,proto3" json:"version,omitempty"`
+	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *TextInfoList) Reset() {
-	*x = TextInfoList{}
-	mi := &file_keeper_proto_msgTypes[15]
+func (x *StoredTextInfo) Reset() {
+	*x = StoredTextInfo{}
+	mi := &file_keeper_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *TextInfoList) String() string {
+func (x *StoredTextInfo) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*TextInfoList) ProtoMessage() {}
+func (*StoredTextInfo) ProtoMessage() {}
 
-func (x *TextInfoList) ProtoReflect() protoreflect.Message {
-	mi := &file_keeper_proto_msgTypes[15]
+func (x *StoredTextInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_keeper_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -811,76 +717,97 @@ func (x *TextInfoList) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use TextInfoList.ProtoReflect.Descriptor instead.
-func (*TextInfoList) Descriptor() ([]byte, []int) {
-	return file_keeper_proto_rawDescGZIP(), []int{15}
+// Deprecated: Use StoredTextInfo.ProtoReflect.Descriptor instead.
+func (*StoredTextInfo) Descriptor() ([]byte, []int) {
+	return file_keeper_proto_rawDescGZIP(), []int{13}
 }
 
-func (x *TextInfoList) GetList() []*TextInfo {
+func (x *StoredTextInfo) GetId() string {
 	if x != nil {
-		return x.List
-	}
-	return nil
-}
-
-type FileChunkInfo struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	FileName      string                 `protobuf:"bytes,1,opt,name=fileName,proto3" json:"fileName,omitempty"`
-	Data          []byte                 `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`
-	Meta          map[string]string      `protobuf:"bytes,3,rep,name=meta,proto3" json:"meta,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *FileChunkInfo) Reset() {
-	*x = FileChunkInfo{}
-	mi := &file_keeper_proto_msgTypes[16]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *FileChunkInfo) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*FileChunkInfo) ProtoMessage() {}
-
-func (x *FileChunkInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_keeper_proto_msgTypes[16]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use FileChunkInfo.ProtoReflect.Descriptor instead.
-func (*FileChunkInfo) Descriptor() ([]byte, []int) {
-	return file_keeper_proto_rawDescGZIP(), []int{16}
-}
-
-func (x *FileChunkInfo) GetFileName() string {
-	if x != nil {
-		return x.FileName
+		return x.Id
 	}
 	return ""
 }
 
-func (x *FileChunkInfo) GetData() []byte {
+func (x *StoredTextInfo) GetData() *TextInfo {
 	if x != nil {
 		return x.Data
 	}
 	return nil
 }
 
-func (x *FileChunkInfo) GetMeta() map[string]string {
+func (x *StoredTextInfo) GetVersion() int64 {
 	if x != nil {
-		return x.Meta
+		return x.Version
+	}
+	return 0
+}
+
+func (x *StoredTextInfo) GetUpdatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdatedAt
 	}
 	return nil
+}
+
+type UpdateTextInfoRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Data          *TextInfo              `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`
+	Version       int64                  `protobuf:"varint,3,opt,name=version,proto3" json:"version,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateTextInfoRequest) Reset() {
+	*x = UpdateTextInfoRequest{}
+	mi := &file_keeper_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateTextInfoRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateTextInfoRequest) ProtoMessage() {}
+
+func (x *UpdateTextInfoRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_keeper_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateTextInfoRequest.ProtoReflect.Descriptor instead.
+func (*UpdateTextInfoRequest) Descriptor() ([]byte, []int) {
+	return file_keeper_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *UpdateTextInfoRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *UpdateTextInfoRequest) GetData() *TextInfo {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *UpdateTextInfoRequest) GetVersion() int64 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
 }
 
 type BankCardDetails struct {
@@ -896,7 +823,7 @@ type BankCardDetails struct {
 
 func (x *BankCardDetails) Reset() {
 	*x = BankCardDetails{}
-	mi := &file_keeper_proto_msgTypes[17]
+	mi := &file_keeper_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -908,7 +835,7 @@ func (x *BankCardDetails) String() string {
 func (*BankCardDetails) ProtoMessage() {}
 
 func (x *BankCardDetails) ProtoReflect() protoreflect.Message {
-	mi := &file_keeper_proto_msgTypes[17]
+	mi := &file_keeper_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -921,7 +848,7 @@ func (x *BankCardDetails) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BankCardDetails.ProtoReflect.Descriptor instead.
 func (*BankCardDetails) Descriptor() ([]byte, []int) {
-	return file_keeper_proto_rawDescGZIP(), []int{17}
+	return file_keeper_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *BankCardDetails) GetNumber() string {
@@ -959,28 +886,31 @@ func (x *BankCardDetails) GetMeta() map[string]string {
 	return nil
 }
 
-type BankCardDetailsList struct {
+type StoredBankCardDetails struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	List          []*BankCardDetails     `protobuf:"bytes,1,rep,name=list,proto3" json:"list,omitempty"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Data          *BankCardDetails       `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`
+	Version       int64                  `protobuf:"varint,3,opt,name=version,proto3" json:"version,omitempty"`
+	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *BankCardDetailsList) Reset() {
-	*x = BankCardDetailsList{}
-	mi := &file_keeper_proto_msgTypes[18]
+func (x *StoredBankCardDetails) Reset() {
+	*x = StoredBankCardDetails{}
+	mi := &file_keeper_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *BankCardDetailsList) String() string {
+func (x *StoredBankCardDetails) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*BankCardDetailsList) ProtoMessage() {}
+func (*StoredBankCardDetails) ProtoMessage() {}
 
-func (x *BankCardDetailsList) ProtoReflect() protoreflect.Message {
-	mi := &file_keeper_proto_msgTypes[18]
+func (x *StoredBankCardDetails) ProtoReflect() protoreflect.Message {
+	mi := &file_keeper_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -991,39 +921,189 @@ func (x *BankCardDetailsList) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use BankCardDetailsList.ProtoReflect.Descriptor instead.
-func (*BankCardDetailsList) Descriptor() ([]byte, []int) {
-	return file_keeper_proto_rawDescGZIP(), []int{18}
+// Deprecated: Use StoredBankCardDetails.ProtoReflect.Descriptor instead.
+func (*StoredBankCardDetails) Descriptor() ([]byte, []int) {
+	return file_keeper_proto_rawDescGZIP(), []int{16}
 }
 
-func (x *BankCardDetailsList) GetList() []*BankCardDetails {
+func (x *StoredBankCardDetails) GetId() string {
 	if x != nil {
-		return x.List
+		return x.Id
+	}
+	return ""
+}
+
+func (x *StoredBankCardDetails) GetData() *BankCardDetails {
+	if x != nil {
+		return x.Data
 	}
 	return nil
 }
 
-type RequestSite struct {
+func (x *StoredBankCardDetails) GetVersion() int64 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *StoredBankCardDetails) GetUpdatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return nil
+}
+
+type UpdateBankCardDetailsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Site          string                 `protobuf:"bytes,1,opt,name=site,proto3" json:"site,omitempty"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Data          *BankCardDetails       `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`
+	Version       int64                  `protobuf:"varint,3,opt,name=version,proto3" json:"version,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *RequestSite) Reset() {
-	*x = RequestSite{}
+func (x *UpdateBankCardDetailsRequest) Reset() {
+	*x = UpdateBankCardDetailsRequest{}
+	mi := &file_keeper_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateBankCardDetailsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateBankCardDetailsRequest) ProtoMessage() {}
+
+func (x *UpdateBankCardDetailsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_keeper_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateBankCardDetailsRequest.ProtoReflect.Descriptor instead.
+func (*UpdateBankCardDetailsRequest) Descriptor() ([]byte, []int) {
+	return file_keeper_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *UpdateBankCardDetailsRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *UpdateBankCardDetailsRequest) GetData() *BankCardDetails {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *UpdateBankCardDetailsRequest) GetVersion() int64 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+type StartUploadRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	FileId          string                 `protobuf:"bytes,1,opt,name=file_id,json=fileId,proto3" json:"file_id,omitempty"`                             // пусто => создать новый логический файл
+	ExpectedVersion int64                  `protobuf:"varint,2,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"` // 0 для нового файла
+	Filename        string                 `protobuf:"bytes,3,opt,name=filename,proto3" json:"filename,omitempty"`
+	Meta            map[string]string      `protobuf:"bytes,4,rep,name=meta,proto3" json:"meta,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *StartUploadRequest) Reset() {
+	*x = StartUploadRequest{}
+	mi := &file_keeper_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StartUploadRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StartUploadRequest) ProtoMessage() {}
+
+func (x *StartUploadRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_keeper_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StartUploadRequest.ProtoReflect.Descriptor instead.
+func (*StartUploadRequest) Descriptor() ([]byte, []int) {
+	return file_keeper_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *StartUploadRequest) GetFileId() string {
+	if x != nil {
+		return x.FileId
+	}
+	return ""
+}
+
+func (x *StartUploadRequest) GetExpectedVersion() int64 {
+	if x != nil {
+		return x.ExpectedVersion
+	}
+	return 0
+}
+
+func (x *StartUploadRequest) GetFilename() string {
+	if x != nil {
+		return x.Filename
+	}
+	return ""
+}
+
+func (x *StartUploadRequest) GetMeta() map[string]string {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
+type StartUploadResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UploadId      string                 `protobuf:"bytes,1,opt,name=upload_id,json=uploadId,proto3" json:"upload_id,omitempty"`
+	FileId        string                 `protobuf:"bytes,2,opt,name=file_id,json=fileId,proto3" json:"file_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StartUploadResponse) Reset() {
+	*x = StartUploadResponse{}
 	mi := &file_keeper_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *RequestSite) String() string {
+func (x *StartUploadResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*RequestSite) ProtoMessage() {}
+func (*StartUploadResponse) ProtoMessage() {}
 
-func (x *RequestSite) ProtoReflect() protoreflect.Message {
+func (x *StartUploadResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_keeper_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1035,39 +1115,48 @@ func (x *RequestSite) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use RequestSite.ProtoReflect.Descriptor instead.
-func (*RequestSite) Descriptor() ([]byte, []int) {
+// Deprecated: Use StartUploadResponse.ProtoReflect.Descriptor instead.
+func (*StartUploadResponse) Descriptor() ([]byte, []int) {
 	return file_keeper_proto_rawDescGZIP(), []int{19}
 }
 
-func (x *RequestSite) GetSite() string {
+func (x *StartUploadResponse) GetUploadId() string {
 	if x != nil {
-		return x.Site
+		return x.UploadId
 	}
 	return ""
 }
 
-type RequestTitle struct {
+func (x *StartUploadResponse) GetFileId() string {
+	if x != nil {
+		return x.FileId
+	}
+	return ""
+}
+
+type UploadChunkRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Title         string                 `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
+	UploadId      string                 `protobuf:"bytes,1,opt,name=upload_id,json=uploadId,proto3" json:"upload_id,omitempty"`
+	ChunkNo       int64                  `protobuf:"varint,2,opt,name=chunk_no,json=chunkNo,proto3" json:"chunk_no,omitempty"`
+	Data          []byte                 `protobuf:"bytes,3,opt,name=data,proto3" json:"data,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *RequestTitle) Reset() {
-	*x = RequestTitle{}
+func (x *UploadChunkRequest) Reset() {
+	*x = UploadChunkRequest{}
 	mi := &file_keeper_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *RequestTitle) String() string {
+func (x *UploadChunkRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*RequestTitle) ProtoMessage() {}
+func (*UploadChunkRequest) ProtoMessage() {}
 
-func (x *RequestTitle) ProtoReflect() protoreflect.Message {
+func (x *UploadChunkRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_keeper_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1079,39 +1168,55 @@ func (x *RequestTitle) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use RequestTitle.ProtoReflect.Descriptor instead.
-func (*RequestTitle) Descriptor() ([]byte, []int) {
+// Deprecated: Use UploadChunkRequest.ProtoReflect.Descriptor instead.
+func (*UploadChunkRequest) Descriptor() ([]byte, []int) {
 	return file_keeper_proto_rawDescGZIP(), []int{20}
 }
 
-func (x *RequestTitle) GetTitle() string {
+func (x *UploadChunkRequest) GetUploadId() string {
 	if x != nil {
-		return x.Title
+		return x.UploadId
 	}
 	return ""
 }
 
-type RequestFileName struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	FileName      string                 `protobuf:"bytes,1,opt,name=fileName,proto3" json:"fileName,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+func (x *UploadChunkRequest) GetChunkNo() int64 {
+	if x != nil {
+		return x.ChunkNo
+	}
+	return 0
 }
 
-func (x *RequestFileName) Reset() {
-	*x = RequestFileName{}
+func (x *UploadChunkRequest) GetData() []byte {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+type UploadChunksResponse struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	UploadId       string                 `protobuf:"bytes,1,opt,name=upload_id,json=uploadId,proto3" json:"upload_id,omitempty"`
+	ReceivedChunks int64                  `protobuf:"varint,2,opt,name=received_chunks,json=receivedChunks,proto3" json:"received_chunks,omitempty"`
+	TotalBytes     int64                  `protobuf:"varint,3,opt,name=total_bytes,json=totalBytes,proto3" json:"total_bytes,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *UploadChunksResponse) Reset() {
+	*x = UploadChunksResponse{}
 	mi := &file_keeper_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *RequestFileName) String() string {
+func (x *UploadChunksResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*RequestFileName) ProtoMessage() {}
+func (*UploadChunksResponse) ProtoMessage() {}
 
-func (x *RequestFileName) ProtoReflect() protoreflect.Message {
+func (x *UploadChunksResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_keeper_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1123,39 +1228,56 @@ func (x *RequestFileName) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use RequestFileName.ProtoReflect.Descriptor instead.
-func (*RequestFileName) Descriptor() ([]byte, []int) {
+// Deprecated: Use UploadChunksResponse.ProtoReflect.Descriptor instead.
+func (*UploadChunksResponse) Descriptor() ([]byte, []int) {
 	return file_keeper_proto_rawDescGZIP(), []int{21}
 }
 
-func (x *RequestFileName) GetFileName() string {
+func (x *UploadChunksResponse) GetUploadId() string {
 	if x != nil {
-		return x.FileName
+		return x.UploadId
 	}
 	return ""
 }
 
-type RequestCardNumber struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Last4         uint32                 `protobuf:"varint,1,opt,name=last4,proto3" json:"last4,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+func (x *UploadChunksResponse) GetReceivedChunks() int64 {
+	if x != nil {
+		return x.ReceivedChunks
+	}
+	return 0
 }
 
-func (x *RequestCardNumber) Reset() {
-	*x = RequestCardNumber{}
+func (x *UploadChunksResponse) GetTotalBytes() int64 {
+	if x != nil {
+		return x.TotalBytes
+	}
+	return 0
+}
+
+type CommitUploadRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	UploadId        string                 `protobuf:"bytes,1,opt,name=upload_id,json=uploadId,proto3" json:"upload_id,omitempty"`
+	FileId          string                 `protobuf:"bytes,2,opt,name=file_id,json=fileId,proto3" json:"file_id,omitempty"`
+	ExpectedVersion int64                  `protobuf:"varint,3,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
+	Checksum        string                 `protobuf:"bytes,4,opt,name=checksum,proto3" json:"checksum,omitempty"` // опционально, если считаешь на клиенте
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *CommitUploadRequest) Reset() {
+	*x = CommitUploadRequest{}
 	mi := &file_keeper_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *RequestCardNumber) String() string {
+func (x *CommitUploadRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*RequestCardNumber) ProtoMessage() {}
+func (*CommitUploadRequest) ProtoMessage() {}
 
-func (x *RequestCardNumber) ProtoReflect() protoreflect.Message {
+func (x *CommitUploadRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_keeper_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1167,14 +1289,415 @@ func (x *RequestCardNumber) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use RequestCardNumber.ProtoReflect.Descriptor instead.
-func (*RequestCardNumber) Descriptor() ([]byte, []int) {
+// Deprecated: Use CommitUploadRequest.ProtoReflect.Descriptor instead.
+func (*CommitUploadRequest) Descriptor() ([]byte, []int) {
 	return file_keeper_proto_rawDescGZIP(), []int{22}
 }
 
-func (x *RequestCardNumber) GetLast4() uint32 {
+func (x *CommitUploadRequest) GetUploadId() string {
 	if x != nil {
-		return x.Last4
+		return x.UploadId
+	}
+	return ""
+}
+
+func (x *CommitUploadRequest) GetFileId() string {
+	if x != nil {
+		return x.FileId
+	}
+	return ""
+}
+
+func (x *CommitUploadRequest) GetExpectedVersion() int64 {
+	if x != nil {
+		return x.ExpectedVersion
+	}
+	return 0
+}
+
+func (x *CommitUploadRequest) GetChecksum() string {
+	if x != nil {
+		return x.Checksum
+	}
+	return ""
+}
+
+type CommitUploadResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	FileId        string                 `protobuf:"bytes,1,opt,name=file_id,json=fileId,proto3" json:"file_id,omitempty"`
+	NewVersion    int64                  `protobuf:"varint,2,opt,name=new_version,json=newVersion,proto3" json:"new_version,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CommitUploadResponse) Reset() {
+	*x = CommitUploadResponse{}
+	mi := &file_keeper_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CommitUploadResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CommitUploadResponse) ProtoMessage() {}
+
+func (x *CommitUploadResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_keeper_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CommitUploadResponse.ProtoReflect.Descriptor instead.
+func (*CommitUploadResponse) Descriptor() ([]byte, []int) {
+	return file_keeper_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *CommitUploadResponse) GetFileId() string {
+	if x != nil {
+		return x.FileId
+	}
+	return ""
+}
+
+func (x *CommitUploadResponse) GetNewVersion() int64 {
+	if x != nil {
+		return x.NewVersion
+	}
+	return 0
+}
+
+type FileMeta struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	FileId         string                 `protobuf:"bytes,1,opt,name=file_id,json=fileId,proto3" json:"file_id,omitempty"`
+	CurrentVersion int64                  `protobuf:"varint,2,opt,name=current_version,json=currentVersion,proto3" json:"current_version,omitempty"`
+	Filename       string                 `protobuf:"bytes,3,opt,name=filename,proto3" json:"filename,omitempty"`
+	SizeBytes      int64                  `protobuf:"varint,4,opt,name=size_bytes,json=sizeBytes,proto3" json:"size_bytes,omitempty"`
+	Checksum       string                 `protobuf:"bytes,5,opt,name=checksum,proto3" json:"checksum,omitempty"`
+	Meta           map[string]string      `protobuf:"bytes,6,rep,name=meta,proto3" json:"meta,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *FileMeta) Reset() {
+	*x = FileMeta{}
+	mi := &file_keeper_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FileMeta) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FileMeta) ProtoMessage() {}
+
+func (x *FileMeta) ProtoReflect() protoreflect.Message {
+	mi := &file_keeper_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FileMeta.ProtoReflect.Descriptor instead.
+func (*FileMeta) Descriptor() ([]byte, []int) {
+	return file_keeper_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *FileMeta) GetFileId() string {
+	if x != nil {
+		return x.FileId
+	}
+	return ""
+}
+
+func (x *FileMeta) GetCurrentVersion() int64 {
+	if x != nil {
+		return x.CurrentVersion
+	}
+	return 0
+}
+
+func (x *FileMeta) GetFilename() string {
+	if x != nil {
+		return x.Filename
+	}
+	return ""
+}
+
+func (x *FileMeta) GetSizeBytes() int64 {
+	if x != nil {
+		return x.SizeBytes
+	}
+	return 0
+}
+
+func (x *FileMeta) GetChecksum() string {
+	if x != nil {
+		return x.Checksum
+	}
+	return ""
+}
+
+func (x *FileMeta) GetMeta() map[string]string {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
+type GetFileMetaRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	FileId        string                 `protobuf:"bytes,1,opt,name=file_id,json=fileId,proto3" json:"file_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetFileMetaRequest) Reset() {
+	*x = GetFileMetaRequest{}
+	mi := &file_keeper_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetFileMetaRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetFileMetaRequest) ProtoMessage() {}
+
+func (x *GetFileMetaRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_keeper_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetFileMetaRequest.ProtoReflect.Descriptor instead.
+func (*GetFileMetaRequest) Descriptor() ([]byte, []int) {
+	return file_keeper_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *GetFileMetaRequest) GetFileId() string {
+	if x != nil {
+		return x.FileId
+	}
+	return ""
+}
+
+type GetFileMetaResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	File          *FileMeta              `protobuf:"bytes,1,opt,name=file,proto3" json:"file,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetFileMetaResponse) Reset() {
+	*x = GetFileMetaResponse{}
+	mi := &file_keeper_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetFileMetaResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetFileMetaResponse) ProtoMessage() {}
+
+func (x *GetFileMetaResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_keeper_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetFileMetaResponse.ProtoReflect.Descriptor instead.
+func (*GetFileMetaResponse) Descriptor() ([]byte, []int) {
+	return file_keeper_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *GetFileMetaResponse) GetFile() *FileMeta {
+	if x != nil {
+		return x.File
+	}
+	return nil
+}
+
+type DownloadFileRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	FileId        string                 `protobuf:"bytes,1,opt,name=file_id,json=fileId,proto3" json:"file_id,omitempty"`
+	Version       int64                  `protobuf:"varint,2,opt,name=version,proto3" json:"version,omitempty"` // 0 => current_version
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DownloadFileRequest) Reset() {
+	*x = DownloadFileRequest{}
+	mi := &file_keeper_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DownloadFileRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DownloadFileRequest) ProtoMessage() {}
+
+func (x *DownloadFileRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_keeper_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DownloadFileRequest.ProtoReflect.Descriptor instead.
+func (*DownloadFileRequest) Descriptor() ([]byte, []int) {
+	return file_keeper_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *DownloadFileRequest) GetFileId() string {
+	if x != nil {
+		return x.FileId
+	}
+	return ""
+}
+
+func (x *DownloadFileRequest) GetVersion() int64 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+type DownloadFileChunk struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ChunkNo       int64                  `protobuf:"varint,1,opt,name=chunk_no,json=chunkNo,proto3" json:"chunk_no,omitempty"`
+	Data          []byte                 `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DownloadFileChunk) Reset() {
+	*x = DownloadFileChunk{}
+	mi := &file_keeper_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DownloadFileChunk) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DownloadFileChunk) ProtoMessage() {}
+
+func (x *DownloadFileChunk) ProtoReflect() protoreflect.Message {
+	mi := &file_keeper_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DownloadFileChunk.ProtoReflect.Descriptor instead.
+func (*DownloadFileChunk) Descriptor() ([]byte, []int) {
+	return file_keeper_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *DownloadFileChunk) GetChunkNo() int64 {
+	if x != nil {
+		return x.ChunkNo
+	}
+	return 0
+}
+
+func (x *DownloadFileChunk) GetData() []byte {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+type DeleteFileRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	FileId          string                 `protobuf:"bytes,1,opt,name=file_id,json=fileId,proto3" json:"file_id,omitempty"`
+	ExpectedVersion int64                  `protobuf:"varint,2,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *DeleteFileRequest) Reset() {
+	*x = DeleteFileRequest{}
+	mi := &file_keeper_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteFileRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteFileRequest) ProtoMessage() {}
+
+func (x *DeleteFileRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_keeper_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteFileRequest.ProtoReflect.Descriptor instead.
+func (*DeleteFileRequest) Descriptor() ([]byte, []int) {
+	return file_keeper_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *DeleteFileRequest) GetFileId() string {
+	if x != nil {
+		return x.FileId
+	}
+	return ""
+}
+
+func (x *DeleteFileRequest) GetExpectedVersion() int64 {
+	if x != nil {
+		return x.ExpectedVersion
 	}
 	return 0
 }
@@ -1183,7 +1706,7 @@ var File_keeper_proto protoreflect.FileDescriptor
 
 const file_keeper_proto_rawDesc = "" +
 	"\n" +
-	"\fkeeper.proto\x12\x03api\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"C\n" +
+	"\fkeeper.proto\x12\x03api\x1a\x1fgoogle/protobuf/timestamp.proto\"C\n" +
 	"\x0fRegisterRequest\x12\x14\n" +
 	"\x05login\x18\x01 \x01(\tR\x05login\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\"+\n" +
@@ -1206,43 +1729,39 @@ const file_keeper_proto_rawDesc = "" +
 	"\x04data\x18\x02 \x01(\v2\r.api.AuthInfoR\x04data\x12\x18\n" +
 	"\aversion\x18\x03 \x01(\x03R\aversion\x129\n" +
 	"\n" +
-	"updated_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\":\n" +
-	"\x15CreateAuthInfoRequest\x12!\n" +
-	"\x04data\x18\x01 \x01(\v2\r.api.AuthInfoR\x04data\"B\n" +
-	"\x16CreateAuthInfoResponse\x12\x0e\n" +
+	"updated_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\">\n" +
+	"\x12CreateInfoResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x18\n" +
-	"\aversion\x18\x02 \x01(\x03R\aversion\"$\n" +
-	"\x12GetAuthInfoRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\">\n" +
-	"\x13GetAuthInfoResponse\x12'\n" +
-	"\x04item\x18\x01 \x01(\v2\x13.api.StoredAuthInfoR\x04item\"d\n" +
+	"\aversion\x18\x02 \x01(\x03R\aversion\" \n" +
+	"\x0eGetInfoRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"d\n" +
 	"\x15UpdateAuthInfoRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12!\n" +
 	"\x04data\x18\x02 \x01(\v2\r.api.AuthInfoR\x04data\x12\x18\n" +
-	"\aversion\x18\x03 \x01(\x03R\aversion\"9\n" +
-	"\x16UpdateAuthInfoResponse\x12\x1f\n" +
+	"\aversion\x18\x03 \x01(\x03R\aversion\"5\n" +
+	"\x12UpdateInfoResponse\x12\x1f\n" +
 	"\vnew_version\x18\x01 \x01(\x03R\n" +
-	"newVersion\"A\n" +
-	"\x15DeleteAuthInfoRequest\x12\x0e\n" +
+	"newVersion\"=\n" +
+	"\x11DeleteInfoRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x18\n" +
-	"\aversion\x18\x02 \x01(\x03R\aversion\"\x18\n" +
-	"\x16DeleteAuthInfoResponse\"\x9a\x01\n" +
-	"\bTextInfo\x12\x14\n" +
-	"\x05title\x18\x01 \x01(\tR\x05title\x12\x12\n" +
+	"\aversion\x18\x02 \x01(\x03R\aversion\"\x14\n" +
+	"\x12DeleteInfoResponse\"\x84\x01\n" +
+	"\bTextInfo\x12\x12\n" +
 	"\x04text\x18\x02 \x01(\tR\x04text\x12+\n" +
 	"\x04meta\x18\x03 \x03(\v2\x17.api.TextInfo.MetaEntryR\x04meta\x1a7\n" +
 	"\tMetaEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"1\n" +
-	"\fTextInfoList\x12!\n" +
-	"\x04list\x18\x01 \x03(\v2\r.api.TextInfoR\x04list\"\xaa\x01\n" +
-	"\rFileChunkInfo\x12\x1a\n" +
-	"\bfileName\x18\x01 \x01(\tR\bfileName\x12\x12\n" +
-	"\x04data\x18\x02 \x01(\fR\x04data\x120\n" +
-	"\x04meta\x18\x03 \x03(\v2\x1c.api.FileChunkInfo.MetaEntryR\x04meta\x1a7\n" +
-	"\tMetaEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xe2\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x98\x01\n" +
+	"\x0eStoredTextInfo\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12!\n" +
+	"\x04data\x18\x02 \x01(\v2\r.api.TextInfoR\x04data\x12\x18\n" +
+	"\aversion\x18\x03 \x01(\x03R\aversion\x129\n" +
+	"\n" +
+	"updated_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"d\n" +
+	"\x15UpdateTextInfoRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12!\n" +
+	"\x04data\x18\x02 \x01(\v2\r.api.TextInfoR\x04data\x12\x18\n" +
+	"\aversion\x18\x03 \x01(\x03R\aversion\"\xe2\x01\n" +
 	"\x0fBankCardDetails\x12\x16\n" +
 	"\x06number\x18\x01 \x01(\tR\x06number\x12\x1a\n" +
 	"\bexpMonth\x18\x02 \x01(\rR\bexpMonth\x12\x18\n" +
@@ -1251,31 +1770,93 @@ const file_keeper_proto_rawDesc = "" +
 	"\x04meta\x18\x06 \x03(\v2\x1e.api.BankCardDetails.MetaEntryR\x04meta\x1a7\n" +
 	"\tMetaEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"?\n" +
-	"\x13BankCardDetailsList\x12(\n" +
-	"\x04list\x18\x01 \x03(\v2\x14.api.BankCardDetailsR\x04list\"!\n" +
-	"\vRequestSite\x12\x12\n" +
-	"\x04site\x18\x01 \x01(\tR\x04site\"$\n" +
-	"\fRequestTitle\x12\x14\n" +
-	"\x05title\x18\x01 \x01(\tR\x05title\"-\n" +
-	"\x0fRequestFileName\x12\x1a\n" +
-	"\bfileName\x18\x01 \x01(\tR\bfileName\")\n" +
-	"\x11RequestCardNumber\x12\x14\n" +
-	"\x05last4\x18\x01 \x01(\rR\x05last42v\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xa6\x01\n" +
+	"\x15StoredBankCardDetails\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12(\n" +
+	"\x04data\x18\x02 \x01(\v2\x14.api.BankCardDetailsR\x04data\x12\x18\n" +
+	"\aversion\x18\x03 \x01(\x03R\aversion\x129\n" +
+	"\n" +
+	"updated_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"r\n" +
+	"\x1cUpdateBankCardDetailsRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12(\n" +
+	"\x04data\x18\x02 \x01(\v2\x14.api.BankCardDetailsR\x04data\x12\x18\n" +
+	"\aversion\x18\x03 \x01(\x03R\aversion\"\xe4\x01\n" +
+	"\x12StartUploadRequest\x12\x17\n" +
+	"\afile_id\x18\x01 \x01(\tR\x06fileId\x12)\n" +
+	"\x10expected_version\x18\x02 \x01(\x03R\x0fexpectedVersion\x12\x1a\n" +
+	"\bfilename\x18\x03 \x01(\tR\bfilename\x125\n" +
+	"\x04meta\x18\x04 \x03(\v2!.api.StartUploadRequest.MetaEntryR\x04meta\x1a7\n" +
+	"\tMetaEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"K\n" +
+	"\x13StartUploadResponse\x12\x1b\n" +
+	"\tupload_id\x18\x01 \x01(\tR\buploadId\x12\x17\n" +
+	"\afile_id\x18\x02 \x01(\tR\x06fileId\"`\n" +
+	"\x12UploadChunkRequest\x12\x1b\n" +
+	"\tupload_id\x18\x01 \x01(\tR\buploadId\x12\x19\n" +
+	"\bchunk_no\x18\x02 \x01(\x03R\achunkNo\x12\x12\n" +
+	"\x04data\x18\x03 \x01(\fR\x04data\"}\n" +
+	"\x14UploadChunksResponse\x12\x1b\n" +
+	"\tupload_id\x18\x01 \x01(\tR\buploadId\x12'\n" +
+	"\x0freceived_chunks\x18\x02 \x01(\x03R\x0ereceivedChunks\x12\x1f\n" +
+	"\vtotal_bytes\x18\x03 \x01(\x03R\n" +
+	"totalBytes\"\x92\x01\n" +
+	"\x13CommitUploadRequest\x12\x1b\n" +
+	"\tupload_id\x18\x01 \x01(\tR\buploadId\x12\x17\n" +
+	"\afile_id\x18\x02 \x01(\tR\x06fileId\x12)\n" +
+	"\x10expected_version\x18\x03 \x01(\x03R\x0fexpectedVersion\x12\x1a\n" +
+	"\bchecksum\x18\x04 \x01(\tR\bchecksum\"P\n" +
+	"\x14CommitUploadResponse\x12\x17\n" +
+	"\afile_id\x18\x01 \x01(\tR\x06fileId\x12\x1f\n" +
+	"\vnew_version\x18\x02 \x01(\x03R\n" +
+	"newVersion\"\x89\x02\n" +
+	"\bFileMeta\x12\x17\n" +
+	"\afile_id\x18\x01 \x01(\tR\x06fileId\x12'\n" +
+	"\x0fcurrent_version\x18\x02 \x01(\x03R\x0ecurrentVersion\x12\x1a\n" +
+	"\bfilename\x18\x03 \x01(\tR\bfilename\x12\x1d\n" +
+	"\n" +
+	"size_bytes\x18\x04 \x01(\x03R\tsizeBytes\x12\x1a\n" +
+	"\bchecksum\x18\x05 \x01(\tR\bchecksum\x12+\n" +
+	"\x04meta\x18\x06 \x03(\v2\x17.api.FileMeta.MetaEntryR\x04meta\x1a7\n" +
+	"\tMetaEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"-\n" +
+	"\x12GetFileMetaRequest\x12\x17\n" +
+	"\afile_id\x18\x01 \x01(\tR\x06fileId\"8\n" +
+	"\x13GetFileMetaResponse\x12!\n" +
+	"\x04file\x18\x01 \x01(\v2\r.api.FileMetaR\x04file\"H\n" +
+	"\x13DownloadFileRequest\x12\x17\n" +
+	"\afile_id\x18\x01 \x01(\tR\x06fileId\x12\x18\n" +
+	"\aversion\x18\x02 \x01(\x03R\aversion\"B\n" +
+	"\x11DownloadFileChunk\x12\x19\n" +
+	"\bchunk_no\x18\x01 \x01(\x03R\achunkNo\x12\x12\n" +
+	"\x04data\x18\x02 \x01(\fR\x04data\"W\n" +
+	"\x11DeleteFileRequest\x12\x17\n" +
+	"\afile_id\x18\x01 \x01(\tR\x06fileId\x12)\n" +
+	"\x10expected_version\x18\x02 \x01(\x03R\x0fexpectedVersion2v\n" +
 	"\vAuthService\x127\n" +
 	"\bRegister\x12\x14.api.RegisterRequest\x1a\x15.api.RegisterResponse\x12.\n" +
-	"\x05Login\x12\x11.api.LoginRequest\x1a\x12.api.LoginResponse2\xac\x05\n" +
-	"\x0eStorageService\x12I\n" +
-	"\x0eCreateAuthInfo\x12\x1a.api.CreateAuthInfoRequest\x1a\x1b.api.CreateAuthInfoResponse\x12@\n" +
-	"\vGetAuthInfo\x12\x17.api.GetAuthInfoRequest\x1a\x18.api.GetAuthInfoResponse\x12I\n" +
-	"\x0eUpdateAuthInfo\x12\x1a.api.UpdateAuthInfoRequest\x1a\x1b.api.UpdateAuthInfoResponse\x12I\n" +
-	"\x0eDeleteAuthInfo\x12\x1a.api.DeleteAuthInfoRequest\x1a\x1b.api.DeleteAuthInfoResponse\x124\n" +
-	"\vSetTextInfo\x12\r.api.TextInfo\x1a\x16.google.protobuf.Empty\x12@\n" +
-	"\x10SetFileChunkInfo\x12\x12.api.FileChunkInfo\x1a\x16.google.protobuf.Empty(\x01\x12B\n" +
-	"\x12SetBankCardDetails\x12\x14.api.BankCardDetails\x1a\x16.google.protobuf.Empty\x123\n" +
-	"\vGetTextInfo\x12\x11.api.RequestTitle\x1a\x11.api.TextInfoList\x12>\n" +
-	"\x10GetFileChunkInfo\x12\x14.api.RequestFileName\x1a\x12.api.FileChunkInfo0\x01\x12F\n" +
-	"\x12GetBankCardDetails\x12\x16.api.RequestCardNumber\x1a\x18.api.BankCardDetailsListB7Z5github.com/konkovaanna23/gophkeeper/pkg/keeperserviceb\x06proto3"
+	"\x05Login\x12\x11.api.LoginRequest\x1a\x12.api.LoginResponse2\xca\t\n" +
+	"\x0eStorageService\x128\n" +
+	"\x0eCreateAuthInfo\x12\r.api.AuthInfo\x1a\x17.api.CreateInfoResponse\x127\n" +
+	"\vGetAuthInfo\x12\x13.api.GetInfoRequest\x1a\x13.api.StoredAuthInfo\x12E\n" +
+	"\x0eUpdateAuthInfo\x12\x1a.api.UpdateAuthInfoRequest\x1a\x17.api.UpdateInfoResponse\x12A\n" +
+	"\x0eDeleteAuthInfo\x12\x16.api.DeleteInfoRequest\x1a\x17.api.DeleteInfoResponse\x128\n" +
+	"\x0eCreateTextInfo\x12\r.api.TextInfo\x1a\x17.api.CreateInfoResponse\x127\n" +
+	"\vGetTextInfo\x12\x13.api.GetInfoRequest\x1a\x13.api.StoredTextInfo\x12E\n" +
+	"\x0eUpdateTextInfo\x12\x1a.api.UpdateTextInfoRequest\x1a\x17.api.UpdateInfoResponse\x12A\n" +
+	"\x0eDeleteTextInfo\x12\x16.api.DeleteInfoRequest\x1a\x17.api.DeleteInfoResponse\x12F\n" +
+	"\x15CreateBankCardDetails\x12\x14.api.BankCardDetails\x1a\x17.api.CreateInfoResponse\x12E\n" +
+	"\x12GetBankCardDetails\x12\x13.api.GetInfoRequest\x1a\x1a.api.StoredBankCardDetails\x12S\n" +
+	"\x15UpdateBankCardDetails\x12!.api.UpdateBankCardDetailsRequest\x1a\x17.api.UpdateInfoResponse\x12H\n" +
+	"\x15DeleteBankCardDetails\x12\x16.api.DeleteInfoRequest\x1a\x17.api.DeleteInfoResponse\x12@\n" +
+	"\vStartUpload\x12\x17.api.StartUploadRequest\x1a\x18.api.StartUploadResponse\x12D\n" +
+	"\fUploadChunks\x12\x17.api.UploadChunkRequest\x1a\x19.api.UploadChunksResponse(\x01\x12C\n" +
+	"\fCommitUpload\x12\x18.api.CommitUploadRequest\x1a\x19.api.CommitUploadResponse\x12@\n" +
+	"\vGetFileMeta\x12\x17.api.GetFileMetaRequest\x1a\x18.api.GetFileMetaResponse\x12B\n" +
+	"\fDownloadFile\x12\x18.api.DownloadFileRequest\x1a\x16.api.DownloadFileChunk0\x01\x12=\n" +
+	"\n" +
+	"DeleteFile\x12\x16.api.DeleteFileRequest\x1a\x17.api.DeleteInfoResponseB7Z5github.com/konkovaanna23/gophkeeper/pkg/keeperserviceb\x06proto3"
 
 var (
 	file_keeper_proto_rawDescOnce sync.Once
@@ -1289,79 +1870,106 @@ func file_keeper_proto_rawDescGZIP() []byte {
 	return file_keeper_proto_rawDescData
 }
 
-var file_keeper_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
+var file_keeper_proto_msgTypes = make([]protoimpl.MessageInfo, 35)
 var file_keeper_proto_goTypes = []any{
-	(*RegisterRequest)(nil),        // 0: api.RegisterRequest
-	(*RegisterResponse)(nil),       // 1: api.RegisterResponse
-	(*LoginRequest)(nil),           // 2: api.LoginRequest
-	(*LoginResponse)(nil),          // 3: api.LoginResponse
-	(*AuthInfo)(nil),               // 4: api.AuthInfo
-	(*StoredAuthInfo)(nil),         // 5: api.StoredAuthInfo
-	(*CreateAuthInfoRequest)(nil),  // 6: api.CreateAuthInfoRequest
-	(*CreateAuthInfoResponse)(nil), // 7: api.CreateAuthInfoResponse
-	(*GetAuthInfoRequest)(nil),     // 8: api.GetAuthInfoRequest
-	(*GetAuthInfoResponse)(nil),    // 9: api.GetAuthInfoResponse
-	(*UpdateAuthInfoRequest)(nil),  // 10: api.UpdateAuthInfoRequest
-	(*UpdateAuthInfoResponse)(nil), // 11: api.UpdateAuthInfoResponse
-	(*DeleteAuthInfoRequest)(nil),  // 12: api.DeleteAuthInfoRequest
-	(*DeleteAuthInfoResponse)(nil), // 13: api.DeleteAuthInfoResponse
-	(*TextInfo)(nil),               // 14: api.TextInfo
-	(*TextInfoList)(nil),           // 15: api.TextInfoList
-	(*FileChunkInfo)(nil),          // 16: api.FileChunkInfo
-	(*BankCardDetails)(nil),        // 17: api.BankCardDetails
-	(*BankCardDetailsList)(nil),    // 18: api.BankCardDetailsList
-	(*RequestSite)(nil),            // 19: api.RequestSite
-	(*RequestTitle)(nil),           // 20: api.RequestTitle
-	(*RequestFileName)(nil),        // 21: api.RequestFileName
-	(*RequestCardNumber)(nil),      // 22: api.RequestCardNumber
-	nil,                            // 23: api.AuthInfo.MetaEntry
-	nil,                            // 24: api.TextInfo.MetaEntry
-	nil,                            // 25: api.FileChunkInfo.MetaEntry
-	nil,                            // 26: api.BankCardDetails.MetaEntry
-	(*timestamppb.Timestamp)(nil),  // 27: google.protobuf.Timestamp
-	(*emptypb.Empty)(nil),          // 28: google.protobuf.Empty
+	(*RegisterRequest)(nil),              // 0: api.RegisterRequest
+	(*RegisterResponse)(nil),             // 1: api.RegisterResponse
+	(*LoginRequest)(nil),                 // 2: api.LoginRequest
+	(*LoginResponse)(nil),                // 3: api.LoginResponse
+	(*AuthInfo)(nil),                     // 4: api.AuthInfo
+	(*StoredAuthInfo)(nil),               // 5: api.StoredAuthInfo
+	(*CreateInfoResponse)(nil),           // 6: api.CreateInfoResponse
+	(*GetInfoRequest)(nil),               // 7: api.GetInfoRequest
+	(*UpdateAuthInfoRequest)(nil),        // 8: api.UpdateAuthInfoRequest
+	(*UpdateInfoResponse)(nil),           // 9: api.UpdateInfoResponse
+	(*DeleteInfoRequest)(nil),            // 10: api.DeleteInfoRequest
+	(*DeleteInfoResponse)(nil),           // 11: api.DeleteInfoResponse
+	(*TextInfo)(nil),                     // 12: api.TextInfo
+	(*StoredTextInfo)(nil),               // 13: api.StoredTextInfo
+	(*UpdateTextInfoRequest)(nil),        // 14: api.UpdateTextInfoRequest
+	(*BankCardDetails)(nil),              // 15: api.BankCardDetails
+	(*StoredBankCardDetails)(nil),        // 16: api.StoredBankCardDetails
+	(*UpdateBankCardDetailsRequest)(nil), // 17: api.UpdateBankCardDetailsRequest
+	(*StartUploadRequest)(nil),           // 18: api.StartUploadRequest
+	(*StartUploadResponse)(nil),          // 19: api.StartUploadResponse
+	(*UploadChunkRequest)(nil),           // 20: api.UploadChunkRequest
+	(*UploadChunksResponse)(nil),         // 21: api.UploadChunksResponse
+	(*CommitUploadRequest)(nil),          // 22: api.CommitUploadRequest
+	(*CommitUploadResponse)(nil),         // 23: api.CommitUploadResponse
+	(*FileMeta)(nil),                     // 24: api.FileMeta
+	(*GetFileMetaRequest)(nil),           // 25: api.GetFileMetaRequest
+	(*GetFileMetaResponse)(nil),          // 26: api.GetFileMetaResponse
+	(*DownloadFileRequest)(nil),          // 27: api.DownloadFileRequest
+	(*DownloadFileChunk)(nil),            // 28: api.DownloadFileChunk
+	(*DeleteFileRequest)(nil),            // 29: api.DeleteFileRequest
+	nil,                                  // 30: api.AuthInfo.MetaEntry
+	nil,                                  // 31: api.TextInfo.MetaEntry
+	nil,                                  // 32: api.BankCardDetails.MetaEntry
+	nil,                                  // 33: api.StartUploadRequest.MetaEntry
+	nil,                                  // 34: api.FileMeta.MetaEntry
+	(*timestamppb.Timestamp)(nil),        // 35: google.protobuf.Timestamp
 }
 var file_keeper_proto_depIdxs = []int32{
-	23, // 0: api.AuthInfo.meta:type_name -> api.AuthInfo.MetaEntry
+	30, // 0: api.AuthInfo.meta:type_name -> api.AuthInfo.MetaEntry
 	4,  // 1: api.StoredAuthInfo.data:type_name -> api.AuthInfo
-	27, // 2: api.StoredAuthInfo.updated_at:type_name -> google.protobuf.Timestamp
-	4,  // 3: api.CreateAuthInfoRequest.data:type_name -> api.AuthInfo
-	5,  // 4: api.GetAuthInfoResponse.item:type_name -> api.StoredAuthInfo
-	4,  // 5: api.UpdateAuthInfoRequest.data:type_name -> api.AuthInfo
-	24, // 6: api.TextInfo.meta:type_name -> api.TextInfo.MetaEntry
-	14, // 7: api.TextInfoList.list:type_name -> api.TextInfo
-	25, // 8: api.FileChunkInfo.meta:type_name -> api.FileChunkInfo.MetaEntry
-	26, // 9: api.BankCardDetails.meta:type_name -> api.BankCardDetails.MetaEntry
-	17, // 10: api.BankCardDetailsList.list:type_name -> api.BankCardDetails
-	0,  // 11: api.AuthService.Register:input_type -> api.RegisterRequest
-	2,  // 12: api.AuthService.Login:input_type -> api.LoginRequest
-	6,  // 13: api.StorageService.CreateAuthInfo:input_type -> api.CreateAuthInfoRequest
-	8,  // 14: api.StorageService.GetAuthInfo:input_type -> api.GetAuthInfoRequest
-	10, // 15: api.StorageService.UpdateAuthInfo:input_type -> api.UpdateAuthInfoRequest
-	12, // 16: api.StorageService.DeleteAuthInfo:input_type -> api.DeleteAuthInfoRequest
-	14, // 17: api.StorageService.SetTextInfo:input_type -> api.TextInfo
-	16, // 18: api.StorageService.SetFileChunkInfo:input_type -> api.FileChunkInfo
-	17, // 19: api.StorageService.SetBankCardDetails:input_type -> api.BankCardDetails
-	20, // 20: api.StorageService.GetTextInfo:input_type -> api.RequestTitle
-	21, // 21: api.StorageService.GetFileChunkInfo:input_type -> api.RequestFileName
-	22, // 22: api.StorageService.GetBankCardDetails:input_type -> api.RequestCardNumber
-	1,  // 23: api.AuthService.Register:output_type -> api.RegisterResponse
-	3,  // 24: api.AuthService.Login:output_type -> api.LoginResponse
-	7,  // 25: api.StorageService.CreateAuthInfo:output_type -> api.CreateAuthInfoResponse
-	9,  // 26: api.StorageService.GetAuthInfo:output_type -> api.GetAuthInfoResponse
-	11, // 27: api.StorageService.UpdateAuthInfo:output_type -> api.UpdateAuthInfoResponse
-	13, // 28: api.StorageService.DeleteAuthInfo:output_type -> api.DeleteAuthInfoResponse
-	28, // 29: api.StorageService.SetTextInfo:output_type -> google.protobuf.Empty
-	28, // 30: api.StorageService.SetFileChunkInfo:output_type -> google.protobuf.Empty
-	28, // 31: api.StorageService.SetBankCardDetails:output_type -> google.protobuf.Empty
-	15, // 32: api.StorageService.GetTextInfo:output_type -> api.TextInfoList
-	16, // 33: api.StorageService.GetFileChunkInfo:output_type -> api.FileChunkInfo
-	18, // 34: api.StorageService.GetBankCardDetails:output_type -> api.BankCardDetailsList
-	23, // [23:35] is the sub-list for method output_type
-	11, // [11:23] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	35, // 2: api.StoredAuthInfo.updated_at:type_name -> google.protobuf.Timestamp
+	4,  // 3: api.UpdateAuthInfoRequest.data:type_name -> api.AuthInfo
+	31, // 4: api.TextInfo.meta:type_name -> api.TextInfo.MetaEntry
+	12, // 5: api.StoredTextInfo.data:type_name -> api.TextInfo
+	35, // 6: api.StoredTextInfo.updated_at:type_name -> google.protobuf.Timestamp
+	12, // 7: api.UpdateTextInfoRequest.data:type_name -> api.TextInfo
+	32, // 8: api.BankCardDetails.meta:type_name -> api.BankCardDetails.MetaEntry
+	15, // 9: api.StoredBankCardDetails.data:type_name -> api.BankCardDetails
+	35, // 10: api.StoredBankCardDetails.updated_at:type_name -> google.protobuf.Timestamp
+	15, // 11: api.UpdateBankCardDetailsRequest.data:type_name -> api.BankCardDetails
+	33, // 12: api.StartUploadRequest.meta:type_name -> api.StartUploadRequest.MetaEntry
+	34, // 13: api.FileMeta.meta:type_name -> api.FileMeta.MetaEntry
+	24, // 14: api.GetFileMetaResponse.file:type_name -> api.FileMeta
+	0,  // 15: api.AuthService.Register:input_type -> api.RegisterRequest
+	2,  // 16: api.AuthService.Login:input_type -> api.LoginRequest
+	4,  // 17: api.StorageService.CreateAuthInfo:input_type -> api.AuthInfo
+	7,  // 18: api.StorageService.GetAuthInfo:input_type -> api.GetInfoRequest
+	8,  // 19: api.StorageService.UpdateAuthInfo:input_type -> api.UpdateAuthInfoRequest
+	10, // 20: api.StorageService.DeleteAuthInfo:input_type -> api.DeleteInfoRequest
+	12, // 21: api.StorageService.CreateTextInfo:input_type -> api.TextInfo
+	7,  // 22: api.StorageService.GetTextInfo:input_type -> api.GetInfoRequest
+	14, // 23: api.StorageService.UpdateTextInfo:input_type -> api.UpdateTextInfoRequest
+	10, // 24: api.StorageService.DeleteTextInfo:input_type -> api.DeleteInfoRequest
+	15, // 25: api.StorageService.CreateBankCardDetails:input_type -> api.BankCardDetails
+	7,  // 26: api.StorageService.GetBankCardDetails:input_type -> api.GetInfoRequest
+	17, // 27: api.StorageService.UpdateBankCardDetails:input_type -> api.UpdateBankCardDetailsRequest
+	10, // 28: api.StorageService.DeleteBankCardDetails:input_type -> api.DeleteInfoRequest
+	18, // 29: api.StorageService.StartUpload:input_type -> api.StartUploadRequest
+	20, // 30: api.StorageService.UploadChunks:input_type -> api.UploadChunkRequest
+	22, // 31: api.StorageService.CommitUpload:input_type -> api.CommitUploadRequest
+	25, // 32: api.StorageService.GetFileMeta:input_type -> api.GetFileMetaRequest
+	27, // 33: api.StorageService.DownloadFile:input_type -> api.DownloadFileRequest
+	29, // 34: api.StorageService.DeleteFile:input_type -> api.DeleteFileRequest
+	1,  // 35: api.AuthService.Register:output_type -> api.RegisterResponse
+	3,  // 36: api.AuthService.Login:output_type -> api.LoginResponse
+	6,  // 37: api.StorageService.CreateAuthInfo:output_type -> api.CreateInfoResponse
+	5,  // 38: api.StorageService.GetAuthInfo:output_type -> api.StoredAuthInfo
+	9,  // 39: api.StorageService.UpdateAuthInfo:output_type -> api.UpdateInfoResponse
+	11, // 40: api.StorageService.DeleteAuthInfo:output_type -> api.DeleteInfoResponse
+	6,  // 41: api.StorageService.CreateTextInfo:output_type -> api.CreateInfoResponse
+	13, // 42: api.StorageService.GetTextInfo:output_type -> api.StoredTextInfo
+	9,  // 43: api.StorageService.UpdateTextInfo:output_type -> api.UpdateInfoResponse
+	11, // 44: api.StorageService.DeleteTextInfo:output_type -> api.DeleteInfoResponse
+	6,  // 45: api.StorageService.CreateBankCardDetails:output_type -> api.CreateInfoResponse
+	16, // 46: api.StorageService.GetBankCardDetails:output_type -> api.StoredBankCardDetails
+	9,  // 47: api.StorageService.UpdateBankCardDetails:output_type -> api.UpdateInfoResponse
+	11, // 48: api.StorageService.DeleteBankCardDetails:output_type -> api.DeleteInfoResponse
+	19, // 49: api.StorageService.StartUpload:output_type -> api.StartUploadResponse
+	21, // 50: api.StorageService.UploadChunks:output_type -> api.UploadChunksResponse
+	23, // 51: api.StorageService.CommitUpload:output_type -> api.CommitUploadResponse
+	26, // 52: api.StorageService.GetFileMeta:output_type -> api.GetFileMetaResponse
+	28, // 53: api.StorageService.DownloadFile:output_type -> api.DownloadFileChunk
+	11, // 54: api.StorageService.DeleteFile:output_type -> api.DeleteInfoResponse
+	35, // [35:55] is the sub-list for method output_type
+	15, // [15:35] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_keeper_proto_init() }
@@ -1375,7 +1983,7 @@ func file_keeper_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_keeper_proto_rawDesc), len(file_keeper_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   27,
+			NumMessages:   35,
 			NumExtensions: 0,
 			NumServices:   2,
 		},
