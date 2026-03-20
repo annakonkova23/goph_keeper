@@ -12,25 +12,37 @@ import (
 )
 
 const (
-	defaultGrpc = "localhost:8080"
+	defaultGrpc = ":5051"
 )
 
 // Config Конфигурация приложения.
 type ConfigServer struct {
-	DSN        string `json:"dsn"`
-	GrpcServer string `json:"grpc_server_address"`
+	DSN               string `json:"dsn"`
+	GrpcServer        string `json:"grpc_server_address"`
+	Key               string `json:"crypto_key"`
+	DeleteFileTimeout int    `json:"delete_file_timeout"`
+	KeyAuth           string `json:"auth_key"`
+	TokenTTL          int    `json:"token_TTL"`
 }
 
 type configServerPointer struct {
-	DSN        *string `json:"dsn"`
-	GrpcServer *string `json:"grpc_server_address"`
-	ConfigPath *string
+	DSN               *string `json:"dsn"`
+	GrpcServer        *string `json:"grpc_server_address"`
+	Key               *string `json:"crypto_key"`
+	DeleteFileTimeout *int    `json:"delete_file_timeout"`
+	KeyAuth           *string `json:"auth_key"`
+	TokenTTL          *int    `json:"token_TTL"`
+	ConfigPath        *string
 }
 
 func defaultConfig() *ConfigServer {
 	return &ConfigServer{
-		DSN:        "", //"postgres://user_main:user_main@localhost:5432/shortenerdb?sslmode=disable",
-		GrpcServer: defaultGrpc,
+		DSN:               "postgres://user_main:user_main@localhost:5432/gophkeeperdb?sslmode=disable",
+		GrpcServer:        defaultGrpc,
+		Key:               "key",
+		KeyAuth:           "key",
+		DeleteFileTimeout: 1,
+		TokenTTL:          2,
 	}
 }
 
@@ -72,7 +84,7 @@ func GetConfig() *ConfigServer {
 
 	cfgFlag := readFlag()
 
-	cfg := &ConfigServer{}
+	cfg := defaultConfig()
 
 	configPath := ""
 	flag.CommandLine.Visit(func(f *flag.Flag) {
@@ -105,14 +117,22 @@ func GetConfig() *ConfigServer {
 func readFlag() *configServerPointer {
 	grpcServerFlag := flag.String("g", "", "Адрес gRPC-сервера")
 	dsnFlag := flag.String("d", "", "DSN для подключения к базе данных")
+	keyFlag := flag.String("k", "", "Ключ для шифрования данных")
+	keyAuthFlag := flag.String("a", "", "Ключ для шифрования пользователя")
+	deleteTimeoutFlag := flag.Int("df", 0, "Таймаут удаления зависших файлов")
+	tokenTTLFlag := flag.Int("t", 0, "Таймаут хранения токена пользователя")
 	configJSONFlag := flag.String("c", "", "Файл конфигурации")
 
 	flag.Parse()
 
 	return &configServerPointer{
-		DSN:        dsnFlag,
-		ConfigPath: configJSONFlag,
-		GrpcServer: grpcServerFlag,
+		DSN:               dsnFlag,
+		ConfigPath:        configJSONFlag,
+		GrpcServer:        grpcServerFlag,
+		Key:               keyFlag,
+		KeyAuth:           keyAuthFlag,
+		DeleteFileTimeout: deleteTimeoutFlag,
+		TokenTTL:          tokenTTLFlag,
 	}
 }
 
@@ -125,6 +145,22 @@ func applyEnv(cfg *ConfigServer) {
 	if v, ok := lookupEnvString("GRPC_SERVER_ADDRESS"); ok {
 		cfg.GrpcServer = v
 	}
+
+	if v, ok := lookupEnvString("CRYPTO_KEY"); ok {
+		cfg.Key = v
+	}
+
+	if v, ok := lookupEnvString("AUTH_KEY"); ok {
+		cfg.KeyAuth = v
+	}
+
+	if v, ok := lookupEnvInt("DELETE_TIMEOUT"); ok {
+		cfg.DeleteFileTimeout = v
+	}
+
+	if v, ok := lookupEnvInt("TOKEN_TTL"); ok {
+		cfg.TokenTTL = v
+	}
 }
 
 func applyFlag(dst *ConfigServer, src *configServerPointer) {
@@ -134,6 +170,14 @@ func applyFlag(dst *ConfigServer, src *configServerPointer) {
 			dst.DSN = *src.DSN
 		case "g":
 			dst.GrpcServer = *src.GrpcServer
+		case "k":
+			dst.Key = *src.Key
+		case "a":
+			dst.KeyAuth = *src.KeyAuth
+		case "df":
+			dst.DeleteFileTimeout = *src.DeleteFileTimeout
+		case "t":
+			dst.TokenTTL = *src.TokenTTL
 		}
 	})
 }
@@ -157,5 +201,20 @@ func applyConfigFile(dst *ConfigServer, src *configServerPointer) {
 	}
 	if src.GrpcServer != nil {
 		dst.GrpcServer = *src.GrpcServer
+	}
+	if src.Key != nil {
+		dst.Key = *src.Key
+	}
+
+	if src.KeyAuth != nil {
+		dst.KeyAuth = *src.KeyAuth
+	}
+
+	if src.DeleteFileTimeout != nil {
+		dst.DeleteFileTimeout = *src.DeleteFileTimeout
+	}
+
+	if src.TokenTTL != nil {
+		dst.TokenTTL = *src.TokenTTL
 	}
 }

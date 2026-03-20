@@ -9,6 +9,12 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
+var insertUser string = `
+		INSERT INTO storage.users (id, login, password)
+		VALUES ($1, $2, $3);
+	`
+var selectUserLogin string = `SELECT id, password FROM storage.users WHERE login = $1`
+
 func (ds *DBStore) CreateUser(ctx context.Context, id, login, password string) error {
 
 	_, err := ds.database.ExecContext(ctx, insertUser, login, password)

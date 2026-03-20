@@ -19,11 +19,11 @@ import (
 )
 
 type StorageServer struct {
-	pb.UnimplementedAuthServiceServer
+	pb.UnimplementedStorageServiceServer
 	repo repository.StoreRepository
 }
 
-func NewStorageService(repo repository.StoreRepository) *StorageServer {
+func NewStorageServer(repo repository.StoreRepository) *StorageServer {
 	return &StorageServer{
 		repo: repo,
 	}
@@ -429,7 +429,7 @@ func (s *StorageServer) DeleteFile(ctx context.Context, req *pb.DeleteFileReques
 	return &pb.DeleteInfoResponse{}, nil
 }
 
-func (s *StorageServer) CreateBankCardDetailsInfo(ctx context.Context, req *pb.BankCardDetails) (*pb.CreateInfoResponse, error) {
+func (s *StorageServer) CreateBankCardDetails(ctx context.Context, req *pb.BankCardDetails) (*pb.CreateInfoResponse, error) {
 	userID, ok := ctx.Value(auth.UserIDKey).(string)
 	if !ok || userID == "" {
 		return nil, status.Error(codes.Unauthenticated, "user is not authenticated")

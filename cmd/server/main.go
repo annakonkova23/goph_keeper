@@ -2,15 +2,24 @@ package main
 
 import (
 	"context"
-	"github.com/konkovaanna23/gophkeeper/internal/config"
-	"github.com/konkovaanna23/gophkeeper/internal/config/db"
-	"github.com/konkovaanna23/gophkeeper/internal/service"
-	"go.uber.org/zap"
+	"fmt"
 	"log"
+	"net"
 	_ "net/http/pprof"
 	"os"
 	"os/signal"
+	"runtime/pprof"
 	"syscall"
+	"time"
+
+	"github.com/konkovaanna23/gophkeeper/internal/auth"
+	"github.com/konkovaanna23/gophkeeper/internal/config"
+	"github.com/konkovaanna23/gophkeeper/internal/config/db"
+	"github.com/konkovaanna23/gophkeeper/internal/repository"
+	"github.com/konkovaanna23/gophkeeper/internal/service"
+	pb "github.com/konkovaanna23/gophkeeper/pkg/keeperservice"
+	"go.uber.org/zap"
+	"google.golang.org/grpc"
 )
 
 var buildVersion string
@@ -27,41 +36,34 @@ func main() {
 	}
 	defer logger.Sync()
 
-	/*ctx*/
-	_, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
 	quitCh := make(chan os.Signal, 1)
 	signal.Notify(quitCh, syscall.SIGQUIT)
 	defer signal.Stop(quitCh)
 
-	//errCh := make(chan error, 2)
+	errCh := make(chan error, 1)
 
 	cfg := config.GetConfig()
-	_ /*database, err */, _ = db.NewConnect(cfg.DSN)
+	database, err := db.NewConnect(cfg.DSN)
 	if err != nil {
-		logger.Error("Ошибка при подключении к базе данных:", zap.Error(err))
+		logger.Fatal("ошибка при подключении к базе данных:", zap.Error(err))
 	} else {
-		logger.Info("Подключение к базе данных успешно")
+		logger.Info("подключение к базе данных успешно")
 		if err := db.RunMigrations(cfg.DSN); err != nil {
-			logger.Error("Ошибка при установке миграций:", zap.Error(err))
-			//database = nil
+			logger.Fatal("ошибка при установке миграций:", zap.Error(err))
 		}
 	}
-	_ = service.NewStorageService(nil)
-	_ = service.NewAuthServer(nil, nil)
-	/*converter := service.NewConverter(ctx, cfg.URLforShort, cfg.FilePath, database, cfg.BufferSize, cfg.BatchSize, cfg.TimeFlushDel)
-	server := handler.NewServer(cfg.URLserver, converter, cfg.Key, cfg.AuditFilePath, cfg.AuditURL, cfg.EnableHTTPS, cfg.TrustedSubnet)
 
-	go func() {
-		logrus.Printf("Сервер запущен на: %s", cfg.URLserver)
-		errCh <- server.Start(ctx)
-	}()
+	repo := repository.NewDBStore(logger, database, time.Duration(cfg.DeleteFileTimeout)*time.Hour)
+	jwtManager := auth.NewJWTManager(cfg.KeyAuth, time.Duration(cfg.TokenTTL)*time.Hour)
 
 	if cfg.GrpcServer != "" {
 		go func() {
-			grpcServer := grpcserver.NewGrpcServer(converter, cfg.AuditFilePath, cfg.AuditURL)
-			errCh <- startGrpcServer(cfg.GrpcServer, grpcServer)
+			storageServer := service.NewStorageServer(repo)
+			authServer := service.NewAuthServer(repo, jwtManager)
+			errCh <- startGrpcServer(logger, cfg.GrpcServer, authServer, storageServer, auth.UnaryAuthInterceptor(jwtManager))
 		}()
 	}
 
@@ -73,7 +75,7 @@ func main() {
 			if p := pprof.Lookup("goroutine"); p != nil {
 				err := p.WriteTo(os.Stderr, 2)
 				if err != nil {
-					logrus.Error(err)
+					logger.Error("Ошибка записи os.Stderr", zap.Error(err))
 				}
 			} else {
 				fmt.Fprintln(os.Stderr, "pprof.Lookup(\"goroutine\") вернул nil")
@@ -81,41 +83,33 @@ func main() {
 			continue
 
 		case <-ctx.Done():
-			logrus.Println("Сервер остановлен")
-
-			shutdownCtx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-			defer cancel()
-			err := pprofSrv.Shutdown(shutdownCtx)
-			if err != nil {
-				logrus.Error(err)
-			}
+			logger.Info("Сервер остановлен")
 			return
 
 		case err := <-errCh:
 			if err != nil {
-				logrus.Fatal("Критическая ошибка в горутине:", err)
+				logger.Fatal("Критическая ошибка в горутине:", zap.Error(err))
 			}
 		}
 
-	}*/
+	}
 }
 
-/*
-func startGrpcServer(host string, srv *grpcserver.GrpcServer) error {
+func startGrpcServer(logger *zap.Logger, host string, authSrv *service.AuthServer, strService *service.StorageServer, interceprtor grpc.UnaryServerInterceptor) error {
 	listen, err := net.Listen("tcp", host)
 	if err != nil {
 		return err
 	}
 
-	s := grpc.NewServer(grpc.UnaryInterceptor(grpcserver.UnaryInterceptor))
+	s := grpc.NewServer(grpc.UnaryInterceptor(interceprtor))
 
-	ss.RegisterShortenerServiceServer(s, srv)
+	pb.RegisterAuthServiceServer(s, authSrv)
+	pb.RegisterStorageServiceServer(s, strService)
 
-	logrus.Info("сервер gRPC начал работу, host:", host)
+	logger.Info("сервер gRPC начал работу", zap.String("host", host))
 
 	if err := s.Serve(listen); err != nil {
 		return err
 	}
 	return nil
 }
-*/
