@@ -32,22 +32,22 @@ func UnaryAuthInterceptor(jwtManager *JWTManager) grpc.UnaryServerInterceptor {
 
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
-			return nil, status.Error(codes.Unauthenticated, "metadata is not provided")
+			return nil, status.Error(codes.Unauthenticated, "metadata не задан")
 		}
 
 		values := md.Get("authorization")
 		if len(values) == 0 {
-			return nil, status.Error(codes.Unauthenticated, "authorization token is not provided")
+			return nil, status.Error(codes.Unauthenticated, "authorization token не задан")
 		}
 
 		parts := strings.SplitN(values[0], " ", 2)
 		if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
-			return nil, status.Error(codes.Unauthenticated, "invalid authorization header")
+			return nil, status.Error(codes.Unauthenticated, "невалидный authorization header")
 		}
 
 		userID, err := jwtManager.Verify(parts[1])
 		if err != nil {
-			return nil, status.Error(codes.Unauthenticated, "invalid token")
+			return nil, status.Error(codes.Unauthenticated, "невалидный token")
 		}
 
 		ctx = context.WithValue(ctx, UserIDKey, userID)

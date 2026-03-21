@@ -15,8 +15,8 @@ var insertBankCardData string = `
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 		RETURNING version`
 
-var selectBankCardDataData string = `
-	 SELECT last4, number_card, exp_month, exp_year, owner, meta  version, updated_at
+var selectBankCardData string = `
+	 SELECT last4, number_card, exp_month, exp_year, owner, meta, version, updated_at
      FROM storage.bank_card_data
      WHERE id = $1
 		  AND user_id = $2
@@ -24,7 +24,7 @@ var selectBankCardDataData string = `
 `
 
 var updateBankCardData string = `
-	 UPDATE  storage.auth_data 
+	 UPDATE storage.bank_card_data
 		SET 
 		    last4 = $1, 
             number_card = $2, 
@@ -59,7 +59,7 @@ func (ds *DBStore) CreateBankCardData(ctx context.Context, card *model.BankCardD
 		card.ID, card.UserID, card.Last4, card.NumberEncrypted, card.ExpMonth, card.ExpYear, card.Owner, card.Meta).
 		Scan(&version)
 	if err != nil {
-		return 0, fmt.Errorf("failed to insert text data: %w", err)
+		return 0, fmt.Errorf("ошибка добавления в БД: %w", err)
 	}
 	return version, nil
 }
@@ -69,7 +69,7 @@ func (ds *DBStore) GetBankCardData(ctx context.Context, userID, cardID string) (
 	card.ID = cardID
 	card.UserID = userID
 
-	err := ds.database.QueryRowContext(ctx, selectTextData, cardID, userID).Scan(
+	err := ds.database.QueryRowContext(ctx, selectBankCardData, cardID, userID).Scan(
 		&card.Last4,
 		&card.NumberEncrypted,
 		&card.ExpMonth,
@@ -102,7 +102,7 @@ func (ds *DBStore) UpdateBankCardData(ctx context.Context, card *model.BankCardD
 		return 0, ErrorVersionConflict
 	}
 	if err != nil {
-		return 0, fmt.Errorf("failed to update auth data: %w", err)
+		return 0, fmt.Errorf("ошибка обновления в БД: %w", err)
 	}
 
 	return newVersion, nil
@@ -113,11 +113,11 @@ func (ds *DBStore) DeleteBankCardData(ctx context.Context, userID, cardID string
 		cardID, userID, expectedVersion,
 	)
 	if err != nil {
-		return fmt.Errorf("failed to delete auth data: %w", err)
+		return fmt.Errorf("ошибка удаления из БД: %w", err)
 	}
 	rows, err := res.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("failed to delete auth data: %w", err)
+		return fmt.Errorf("ошибка удаления из БД: %w", err)
 	}
 	if rows == 0 {
 		return ErrorVersionConflict

@@ -26,7 +26,7 @@ var selectTextData string = `
 var updateTextData string = `
 	 UPDATE  storage.text_data 
 		SET 
-		    data = $1
+		    data = $1,
 		    meta = $2,
 		    version = version + 1,
 		    updated_at = now()
@@ -55,7 +55,7 @@ func (ds *DBStore) CreateTextData(ctx context.Context, text *model.TextData) (in
 		text.ID, text.UserID, text.Data, text.Meta).
 		Scan(&version)
 	if err != nil {
-		return 0, fmt.Errorf("failed to insert text data: %w", err)
+		return 0, fmt.Errorf("ошибка добавления в БД: %w", err)
 	}
 	return version, nil
 }
@@ -89,7 +89,7 @@ func (ds *DBStore) UpdateTextData(ctx context.Context, text *model.TextData, exp
 		return 0, ErrorVersionConflict
 	}
 	if err != nil {
-		return 0, fmt.Errorf("failed to update auth data: %w", err)
+		return 0, fmt.Errorf("ошибка обновления в БД: %w", err)
 	}
 
 	return newVersion, nil
@@ -100,11 +100,11 @@ func (ds *DBStore) DeleteTextData(ctx context.Context, userID, textID string, ex
 		textID, userID, expectedVersion,
 	)
 	if err != nil {
-		return fmt.Errorf("failed to delete auth data: %w", err)
+		return fmt.Errorf("ошибка удаления из БД: %w", err)
 	}
 	rows, err := res.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("failed to delete auth data: %w", err)
+		return fmt.Errorf("ошибка удаления из БД: %w", err)
 	}
 	if rows == 0 {
 		return ErrorVersionConflict

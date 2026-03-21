@@ -57,7 +57,7 @@ func (m *JWTManager) Verify(tokenString string) (string, error) {
 	}
 
 	if !token.Valid || claims.UserID == "" {
-		return "", errors.New("invalid token")
+		return "", errors.New("невалидный token")
 	}
 
 	return claims.UserID, nil

@@ -17,6 +17,7 @@ import (
 	"github.com/konkovaanna23/gophkeeper/internal/config/db"
 	"github.com/konkovaanna23/gophkeeper/internal/repository"
 	"github.com/konkovaanna23/gophkeeper/internal/service"
+	"github.com/konkovaanna23/gophkeeper/internal/service/interceptor"
 	pb "github.com/konkovaanna23/gophkeeper/pkg/keeperservice"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -59,10 +60,14 @@ func main() {
 	repo := repository.NewDBStore(logger, database, time.Duration(cfg.DeleteFileTimeout)*time.Hour)
 	jwtManager := auth.NewJWTManager(cfg.KeyAuth, time.Duration(cfg.TokenTTL)*time.Hour)
 
+	key, err := config.GetEncryptionKey(cfg.Key)
+	if err != nil {
+		logger.Fatal("Некорректно задан ключ", zap.Error(err))
+	}
 	if cfg.GrpcServer != "" {
 		go func() {
-			storageServer := service.NewStorageServer(repo)
-			authServer := service.NewAuthServer(repo, jwtManager)
+			storageServer := service.NewStorageServer(logger, repo, key)
+			authServer := service.NewAuthServer(logger, repo, jwtManager)
 			errCh <- startGrpcServer(logger, cfg.GrpcServer, authServer, storageServer, auth.UnaryAuthInterceptor(jwtManager))
 		}()
 	}
@@ -95,13 +100,19 @@ func main() {
 	}
 }
 
-func startGrpcServer(logger *zap.Logger, host string, authSrv *service.AuthServer, strService *service.StorageServer, interceprtor grpc.UnaryServerInterceptor) error {
+func startGrpcServer(logger *zap.Logger, host string, authSrv *service.AuthServer, strService *service.StorageServer, interceprtorAuth grpc.UnaryServerInterceptor) error {
 	listen, err := net.Listen("tcp", host)
 	if err != nil {
 		return err
 	}
 
-	s := grpc.NewServer(grpc.UnaryInterceptor(interceprtor))
+	unaryChain := grpc.ChainUnaryInterceptor(
+		interceprtorAuth,
+		interceptor.UnaryLoggerInterceptor(logger),
+	)
+
+	s := grpc.NewServer(unaryChain,
+		grpc.StreamInterceptor(interceptor.StreamLoggerInterceptor(logger)))
 
 	pb.RegisterAuthServiceServer(s, authSrv)
 	pb.RegisterStorageServiceServer(s, strService)

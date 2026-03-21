@@ -5,7 +5,7 @@ GRANT USAGE, CREATE ON SCHEMA storage TO current_user;
 
 CREATE TABLE IF NOT EXISTS storage.users (
     id UUID PRIMARY KEY,
-    login VARCHAR(1000) NOT NULL UNIQUE,,
+    login VARCHAR(1000) NOT NULL UNIQUE,
     password VARCHAR(1000) NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW()
  );
@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS storage.users (
 
 CREATE TABLE IF NOT EXISTS storage.auth_data (
     id UUID PRIMARY KEY,
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL,
     login VARCHAR(1000) NOT NULL,
     password BYTEA NOT NULL,
     meta JSONB NOT NULL DEFAULT '{}'::jsonb,
@@ -21,17 +21,17 @@ CREATE TABLE IF NOT EXISTS storage.auth_data (
     deleted_at TIMESTAMPTZ NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
-)
+);
 
-CREATE INDEX idx_auth_data_user_id ON storage.auth_data(user_id);
-CREATE INDEX idx_auth_data_alive ON storage.auth_data(user_id, id) WHERE deleted_at IS NULL;
-
-
+CREATE INDEX IF NOT EXISTS  idx_auth_data_user_id ON storage.auth_data(user_id);
+CREATE INDEX IF NOT EXISTS idx_auth_data_alive ON storage.auth_data(user_id, id) WHERE deleted_at IS NULL;
 
 
-CREATE TABLE storage.text_data (
+
+
+CREATE TABLE IF NOT EXISTS storage.text_data (
     id UUID PRIMARY KEY,
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL,
     data text NOT NULL,
     meta JSONB NOT NULL DEFAULT '{}'::jsonb,
     version BIGINT NOT NULL DEFAULT 1,
@@ -40,15 +40,15 @@ CREATE TABLE storage.text_data (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_text_data_user_id ON storage.text_data(user_id);
-CREATE INDEX idx_text_data_alive ON storage.text_data(user_id, id) WHERE deleted_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_text_data_user_id ON storage.text_data(user_id);
+CREATE INDEX IF NOT EXISTS idx_text_data_alive ON storage.text_data(user_id, id) WHERE deleted_at IS NULL;
 
 
-CREATE TABLE storage.bank_card_data (
+CREATE TABLE IF NOT EXISTS storage.bank_card_data (
     id UUID PRIMARY KEY,
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL,
     last4 int,
-    number_card varchar(1000),
+    number_card BYTEA NOT NULL,
     exp_month int NOT NULL,
     exp_year int NOT NULL,
     owner varchar(1000),
@@ -59,11 +59,11 @@ CREATE TABLE storage.bank_card_data (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_bank_card_data_user_id ON storage.bank_card_data(user_id);
-CREATE INDEX idx_bank_card_data_alive ON storage.bank_card_data(user_id, id) WHERE deleted_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_bank_card_data_user_id ON storage.bank_card_data(user_id);
+CREATE INDEX IF NOT EXISTS idx_bank_card_data_alive ON storage.bank_card_data(user_id, id) WHERE deleted_at IS NULL;
 
 
-CREATE TABLE storage.files (
+CREATE TABLE IF NOT EXISTS storage.files (
     id UUID PRIMARY KEY,
     user_id UUID NOT NULL,
     current_version BIGINT NOT NULL DEFAULT 0,
@@ -71,9 +71,9 @@ CREATE TABLE storage.files (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE storage.uploads (
+CREATE TABLE IF NOT EXISTS storage.uploads (
     id UUID PRIMARY KEY,
-    file_id UUID NOT NULL REFERENCES files(id) ON DELETE CASCADE,
+    file_id UUID NOT NULL,
     user_id UUID NOT NULL,
     expected_version BIGINT NOT NULL,
     filename TEXT NOT NULL,
@@ -82,16 +82,16 @@ CREATE TABLE storage.uploads (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE storage.pload_chunks (
-    upload_id UUID NOT NULL REFERENCES uploads(id) ON DELETE CASCADE,
+CREATE TABLE IF NOT EXISTS storage.upload_chunks (
+    upload_id UUID NOT NULL,
     chunk_no BIGINT NOT NULL,
     data BYTEA NOT NULL,
     size_bytes BIGINT NOT NULL,
     PRIMARY KEY (upload_id, chunk_no)
 );
 
-CREATE TABLE storage.file_versions (
-    file_id UUID NOT NULL REFERENCES files(id) ON DELETE CASCADE,
+CREATE TABLE IF NOT EXISTS storage.file_versions (
+    file_id UUID NOT NULL,
     version BIGINT NOT NULL,
     filename TEXT NOT NULL,
     size_bytes BIGINT NOT NULL,
@@ -101,12 +101,11 @@ CREATE TABLE storage.file_versions (
     PRIMARY KEY (file_id, version)
 );
 
-CREATE TABLE storage.file_chunks (
-    file_id UUID NOT NULL REFERENCES files(id) ON DELETE CASCADE,
+CREATE TABLE IF NOT EXISTS storage.file_chunks (
+    file_id UUID NOT NULL,
     version BIGINT NOT NULL,
     chunk_no BIGINT NOT NULL,
     data BYTEA NOT NULL,
     size_bytes BIGINT NOT NULL,
-    PRIMARY KEY (file_id, version, chunk_no),
-    FOREIGN KEY (file_id, version) REFERENCES file_versions(file_id, version) ON DELETE CASCADE
+    PRIMARY KEY (file_id, version, chunk_no)
 );

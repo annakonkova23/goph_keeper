@@ -2,8 +2,10 @@
 package config
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -39,8 +41,8 @@ func defaultConfig() *ConfigServer {
 	return &ConfigServer{
 		DSN:               "postgres://user_main:user_main@localhost:5432/gophkeeperdb?sslmode=disable",
 		GrpcServer:        defaultGrpc,
-		Key:               "key",
-		KeyAuth:           "key",
+		Key:               "e79MwJBpok2XsNHkMFn3W56+lW3iGMi9uWzbhJgNPRE=",
+		KeyAuth:           "e79MwJBpok2XsNHkMFn3W56+lW3iGMi9uWzbhJgNPRE=",
 		DeleteFileTimeout: 1,
 		TokenTTL:          2,
 	}
@@ -217,4 +219,22 @@ func applyConfigFile(dst *ConfigServer, src *configServerPointer) {
 	if src.TokenTTL != nil {
 		dst.TokenTTL = *src.TokenTTL
 	}
+}
+
+func GetEncryptionKey(encodedKey string) ([]byte, error) {
+	if encodedKey == "" {
+		return nil, fmt.Errorf("ключ не задан")
+	}
+
+	// Декодируем из Base64 → получаем 32 байта
+	key, err := base64.StdEncoding.DecodeString(encodedKey)
+	if err != nil {
+		return nil, fmt.Errorf("ошибка декодирования ключа: %w", err)
+	}
+
+	if len(key) != 32 {
+		return nil, fmt.Errorf("невалидный размер: got %d bytes, expected 32", len(key))
+	}
+
+	return key, nil
 }

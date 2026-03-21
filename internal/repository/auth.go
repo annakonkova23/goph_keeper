@@ -56,7 +56,7 @@ func (ds *DBStore) CreateAuthData(ctx context.Context, auth *model.AuthData) (in
 		auth.ID, auth.UserID, auth.Login, auth.Password, auth.Meta).
 		Scan(&version)
 	if err != nil {
-		return 0, fmt.Errorf("failed to insert auth data: %w", err)
+		return 0, fmt.Errorf("ошибка добавления в БД: %w", err)
 	}
 	return version, nil
 }
@@ -91,7 +91,7 @@ func (ds *DBStore) UpdateAuthData(ctx context.Context, auth *model.AuthData, exp
 		return 0, ErrorVersionConflict
 	}
 	if err != nil {
-		return 0, fmt.Errorf("failed to update auth data: %w", err)
+		return 0, fmt.Errorf("ошибка обновления в БД: %w", err)
 	}
 
 	return newVersion, nil
@@ -102,11 +102,11 @@ func (ds *DBStore) DeleteAuthData(ctx context.Context, userID, authID string, ex
 		authID, userID, expectedVersion,
 	)
 	if err != nil {
-		return fmt.Errorf("failed to delete auth data: %w", err)
+		return fmt.Errorf("ошибка удаления из БД: %w", err)
 	}
 	rows, err := res.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("failed to delete auth data: %w", err)
+		return fmt.Errorf("ошибка удаления из БД: %w", err)
 	}
 	if rows == 0 {
 		return ErrorVersionConflict

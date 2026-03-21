@@ -17,14 +17,14 @@ var selectUserLogin string = `SELECT id, password FROM storage.users WHERE login
 
 func (ds *DBStore) CreateUser(ctx context.Context, id, login, password string) error {
 
-	_, err := ds.database.ExecContext(ctx, insertUser, login, password)
+	_, err := ds.database.ExecContext(ctx, insertUser, id, login, password)
 	if err != nil {
 		if pgErr, ok := err.(*pgconn.PgError); ok {
 			if pgErr.Code == "23505" {
 				return ErrorConflict
 			}
 		}
-		return fmt.Errorf("failed to insert user: %w", err)
+		return fmt.Errorf("ошибка вставки в таблицу storage.users: %w", err)
 	}
 
 	return nil
@@ -38,7 +38,7 @@ func (ds *DBStore) GetUserByLogin(ctx context.Context, loginSrc string) (string,
 		if errors.Is(err, sql.ErrNoRows) {
 			return "", "", ErrorUserNotFound
 		}
-		return "", "", fmt.Errorf("database error: %w", err)
+		return "", "", fmt.Errorf("ошибка получения пользователя из БД: %w", err)
 	}
 
 	return id, password, nil
