@@ -3,6 +3,7 @@ package middleware
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -78,6 +79,9 @@ func WithGRPCAuthorization(cookieName string) func(http.Handler) http.Handler {
 				})
 				return
 			}
+
+			fmt.Println("ЗАДАЁМ ТОКЕН")
+			fmt.Println(token)
 
 			ctx := metadata.AppendToOutgoingContext(
 				r.Context(),
