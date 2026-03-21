@@ -114,8 +114,8 @@ message UpdateBankCardDetailsRequest {
 }
 
 message StartUploadRequest {
-  string file_id = 1;          // пусто => создать новый логический файл
-  int64 expected_version = 2;  // 0 для нового файла
+  string file_id = 1;    
+  int64 version = 2;  
   string filename = 3;
   map<string, string> meta = 4;
 }
@@ -140,8 +140,8 @@ message UploadChunksResponse {
 message CommitUploadRequest {
   string upload_id = 1;
   string file_id = 2;
-  int64 expected_version = 3;
-  string checksum = 4; // опционально, если считаешь на клиенте
+  int64 version = 3;
+  string checksum = 4; 
 }
 
 message CommitUploadResponse {
@@ -168,7 +168,7 @@ message GetFileMetaResponse {
 
 message DownloadFileRequest {
   string file_id = 1;
-  int64 version = 2; // 0 => current_version
+  int64 version = 2;
 }
 
 message DownloadFileChunk {
@@ -178,7 +178,7 @@ message DownloadFileChunk {
 
 message DeleteFileRequest {
   string file_id = 1;
-  int64 expected_version = 2;
+  int64 version = 2;
 }
 
 

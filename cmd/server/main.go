@@ -68,7 +68,7 @@ func main() {
 		go func() {
 			storageServer := service.NewStorageServer(logger, repo, key)
 			authServer := service.NewAuthServer(logger, repo, jwtManager)
-			errCh <- startGrpcServer(logger, cfg.GrpcServer, authServer, storageServer, auth.UnaryAuthInterceptor(jwtManager))
+			errCh <- startGrpcServer(logger, cfg.GrpcServer, authServer, storageServer, auth.UnaryAuthInterceptor(jwtManager), auth.StreamAuthInterceptor(jwtManager))
 		}()
 	}
 
@@ -100,7 +100,7 @@ func main() {
 	}
 }
 
-func startGrpcServer(logger *zap.Logger, host string, authSrv *service.AuthServer, strService *service.StorageServer, interceprtorAuth grpc.UnaryServerInterceptor) error {
+func startGrpcServer(logger *zap.Logger, host string, authSrv *service.AuthServer, strService *service.StorageServer, interceprtorAuth grpc.UnaryServerInterceptor, interceprtorAuthStream grpc.StreamServerInterceptor) error {
 	listen, err := net.Listen("tcp", host)
 	if err != nil {
 		return err
@@ -111,8 +111,13 @@ func startGrpcServer(logger *zap.Logger, host string, authSrv *service.AuthServe
 		interceptor.UnaryLoggerInterceptor(logger),
 	)
 
+	streamChain := grpc.ChainStreamInterceptor(
+		interceprtorAuthStream,
+		interceptor.StreamLoggerInterceptor(logger),
+	)
+
 	s := grpc.NewServer(unaryChain,
-		grpc.StreamInterceptor(interceptor.StreamLoggerInterceptor(logger)))
+		streamChain)
 
 	pb.RegisterAuthServiceServer(s, authSrv)
 	pb.RegisterStorageServiceServer(s, strService)

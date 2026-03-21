@@ -265,179 +265,6 @@ func (s *StorageServer) DeleteTextInfo(ctx context.Context, req *pb.DeleteInfoRe
 	return &pb.DeleteInfoResponse{}, nil
 }
 
-func (s *StorageServer) StartUpload(ctx context.Context, req *pb.StartUploadRequest) (*pb.StartUploadResponse, error) {
-	userID, ok := ctx.Value(auth.UserIDKey).(string)
-	if !ok || userID == "" {
-		return nil, status.Error(codes.Unauthenticated, "пользователь не авторизован")
-	}
-
-	if req.GetFilename() == "" {
-		return nil, status.Error(codes.InvalidArgument, "filename is required")
-	}
-
-	uploadID, fileID, err := s.repo.StartUpload(
-		ctx,
-		userID,
-		req.GetFileId(),
-		req.GetExpectedVersion(),
-		req.GetFilename(),
-		req.GetMeta(),
-		NewUUID,
-	)
-	if err != nil {
-		return nil, grpcErr(err)
-	}
-
-	return &pb.StartUploadResponse{
-		UploadId: uploadID,
-		FileId:   fileID,
-	}, nil
-}
-
-func (s *StorageServer) UploadChunks(stream pb.StorageService_UploadChunksServer) error {
-	userID, ok := stream.Context().Value(auth.UserIDKey).(string)
-	if !ok || userID == "" {
-		return status.Error(codes.Unauthenticated, "пользователь не авторизован")
-	}
-
-	var uploadID string
-	var received int64
-	var totalBytes int64
-
-	for {
-		req, err := stream.Recv()
-		if err == io.EOF {
-			return stream.SendAndClose(&pb.UploadChunksResponse{
-				UploadId:       uploadID,
-				ReceivedChunks: received,
-				TotalBytes:     totalBytes,
-			})
-		}
-		if err != nil {
-			return status.Error(codes.Internal, "failed to receive stream message")
-		}
-
-		if req.GetUploadId() == "" {
-			return status.Error(codes.InvalidArgument, "upload_id is required")
-		}
-		if uploadID == "" {
-			uploadID = req.GetUploadId()
-		}
-		if req.GetUploadId() != uploadID {
-			return status.Error(codes.InvalidArgument, "all chunks must belong to one upload_id")
-		}
-		if len(req.GetData()) == 0 {
-			return status.Error(codes.InvalidArgument, "chunk data is empty")
-		}
-
-		if err := s.repo.PutUploadChunk(
-			stream.Context(),
-			userID,
-			req.GetUploadId(),
-			req.GetChunkNo(),
-			req.GetData(),
-		); err != nil {
-			return grpcErr(err)
-		}
-
-		received++
-		totalBytes += int64(len(req.GetData()))
-	}
-}
-
-func (s *StorageServer) CommitUpload(ctx context.Context, req *pb.CommitUploadRequest) (*pb.CommitUploadResponse, error) {
-	userID, ok := ctx.Value(auth.UserIDKey).(string)
-	if !ok || userID == "" {
-		return nil, status.Error(codes.Unauthenticated, "пользователь не авторизован")
-	}
-
-	if req.GetUploadId() == "" {
-		return nil, status.Error(codes.InvalidArgument, "upload_id is required")
-	}
-
-	fileID, newVersion, err := s.repo.CommitUpload(
-		ctx,
-		userID,
-		req.GetUploadId(),
-		req.GetFileId(),
-		req.GetExpectedVersion(),
-		req.GetChecksum(),
-	)
-	if err != nil {
-		return nil, grpcErr(err)
-	}
-
-	return &pb.CommitUploadResponse{
-		FileId:     fileID,
-		NewVersion: newVersion,
-	}, nil
-}
-
-func (s *StorageServer) GetFileMeta(ctx context.Context, req *pb.GetFileMetaRequest) (*pb.GetFileMetaResponse, error) {
-	userID, ok := ctx.Value(auth.UserIDKey).(string)
-	if !ok || userID == "" {
-		return nil, status.Error(codes.Unauthenticated, "пользователь не авторизован")
-	}
-
-	meta, err := s.repo.GetFileMeta(ctx, userID, req.GetFileId())
-	if err != nil {
-		return nil, grpcErr(err)
-	}
-
-	outMeta := map[string]string{}
-	_ = json.Unmarshal(meta.MetaJSON, &outMeta)
-
-	return &pb.GetFileMetaResponse{
-		File: &pb.FileMeta{
-			FileId:         meta.FileID,
-			CurrentVersion: meta.CurrentVersion,
-			Filename:       meta.Filename,
-			SizeBytes:      meta.SizeBytes,
-			Checksum:       meta.Checksum,
-			Meta:           outMeta,
-		},
-	}, nil
-}
-
-func (s *StorageServer) DownloadFile(req *pb.DownloadFileRequest, stream pb.StorageService_DownloadFileServer) error {
-	userID, ok := stream.Context().Value(auth.UserIDKey).(string)
-	if !ok || userID == "" {
-		return status.Error(codes.Unauthenticated, "пользователь не авторизован")
-	}
-
-	err := s.repo.StreamFileChunks(
-		stream.Context(),
-		userID,
-		req.GetFileId(),
-		req.GetVersion(),
-		func(chunkNo int64, data []byte) error {
-			return stream.Send(&pb.DownloadFileChunk{
-				ChunkNo: chunkNo,
-				Data:    data,
-			})
-		},
-	)
-	if err != nil {
-		return grpcErr(err)
-	}
-
-	return nil
-}
-
-func (s *StorageServer) DeleteFile(ctx context.Context, req *pb.DeleteFileRequest) (*pb.DeleteInfoResponse, error) {
-	userID, ok := ctx.Value(auth.UserIDKey).(string)
-	if !ok || userID == "" {
-		return nil, status.Error(codes.Unauthenticated, "пользователь не авторизован")
-	}
-
-	err := s.repo.DeleteFile(ctx, userID, req.GetFileId(), req.GetExpectedVersion())
-	if err != nil {
-		return nil, grpcErr(err)
-	}
-
-	return &pb.DeleteInfoResponse{}, nil
-}
-
 func (s *StorageServer) CreateBankCardDetails(ctx context.Context, req *pb.BankCardDetails) (*pb.CreateInfoResponse, error) {
 	userID, ok := ctx.Value(auth.UserIDKey).(string)
 	if !ok || userID == "" {
@@ -580,6 +407,179 @@ func (s *StorageServer) DeleteBankCardDetails(ctx context.Context, req *pb.Delet
 	err := s.repo.DeleteBankCardData(ctx, userID, req.GetId(), req.GetVersion())
 	if err != nil {
 		s.lgr.Error("ошибка удаления карты", zap.Error(err))
+		return nil, grpcErr(err)
+	}
+
+	return &pb.DeleteInfoResponse{}, nil
+}
+
+func (s *StorageServer) StartUpload(ctx context.Context, req *pb.StartUploadRequest) (*pb.StartUploadResponse, error) {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, status.Error(codes.Unauthenticated, "пользователь не авторизован")
+	}
+
+	if req.GetFilename() == "" {
+		return nil, status.Error(codes.InvalidArgument, "filename is required")
+	}
+
+	uploadID, fileID, err := s.repo.StartUpload(
+		ctx,
+		userID,
+		req.GetFileId(),
+		req.GetVersion(),
+		req.GetFilename(),
+		req.GetMeta(),
+		NewUUID,
+	)
+	if err != nil {
+		return nil, grpcErr(err)
+	}
+
+	return &pb.StartUploadResponse{
+		UploadId: uploadID,
+		FileId:   fileID,
+	}, nil
+}
+
+func (s *StorageServer) UploadChunks(stream pb.StorageService_UploadChunksServer) error {
+	userID, ok := stream.Context().Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return status.Error(codes.Unauthenticated, "пользователь не авторизован")
+	}
+
+	var uploadID string
+	var received int64
+	var totalBytes int64
+
+	for {
+		req, err := stream.Recv()
+		if err == io.EOF {
+			return stream.SendAndClose(&pb.UploadChunksResponse{
+				UploadId:       uploadID,
+				ReceivedChunks: received,
+				TotalBytes:     totalBytes,
+			})
+		}
+		if err != nil {
+			return status.Error(codes.Internal, "failed to receive stream message")
+		}
+
+		if req.GetUploadId() == "" {
+			return status.Error(codes.InvalidArgument, "upload_id is required")
+		}
+		if uploadID == "" {
+			uploadID = req.GetUploadId()
+		}
+		if req.GetUploadId() != uploadID {
+			return status.Error(codes.InvalidArgument, "all chunks must belong to one upload_id")
+		}
+		if len(req.GetData()) == 0 {
+			return status.Error(codes.InvalidArgument, "chunk data is empty")
+		}
+
+		if err := s.repo.PutUploadChunk(
+			stream.Context(),
+			userID,
+			req.GetUploadId(),
+			req.GetChunkNo(),
+			req.GetData(),
+		); err != nil {
+			return grpcErr(err)
+		}
+
+		received++
+		totalBytes += int64(len(req.GetData()))
+	}
+}
+
+func (s *StorageServer) CommitUpload(ctx context.Context, req *pb.CommitUploadRequest) (*pb.CommitUploadResponse, error) {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, status.Error(codes.Unauthenticated, "пользователь не авторизован")
+	}
+
+	if req.GetUploadId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "upload_id is required")
+	}
+
+	fileID, newVersion, err := s.repo.CommitUpload(
+		ctx,
+		userID,
+		req.GetUploadId(),
+		req.GetFileId(),
+		req.GetVersion(),
+		req.GetChecksum(),
+	)
+	if err != nil {
+		return nil, grpcErr(err)
+	}
+
+	return &pb.CommitUploadResponse{
+		FileId:     fileID,
+		NewVersion: newVersion,
+	}, nil
+}
+
+func (s *StorageServer) GetFileMeta(ctx context.Context, req *pb.GetFileMetaRequest) (*pb.GetFileMetaResponse, error) {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, status.Error(codes.Unauthenticated, "пользователь не авторизован")
+	}
+
+	meta, err := s.repo.GetFileMeta(ctx, userID, req.GetFileId())
+	if err != nil {
+		return nil, grpcErr(err)
+	}
+
+	outMeta := map[string]string{}
+	_ = json.Unmarshal(meta.MetaJSON, &outMeta)
+
+	return &pb.GetFileMetaResponse{
+		File: &pb.FileMeta{
+			FileId:         meta.FileID,
+			CurrentVersion: meta.CurrentVersion,
+			Filename:       meta.Filename,
+			SizeBytes:      meta.SizeBytes,
+			Checksum:       meta.Checksum,
+			Meta:           outMeta,
+		},
+	}, nil
+}
+
+func (s *StorageServer) DownloadFile(req *pb.DownloadFileRequest, stream pb.StorageService_DownloadFileServer) error {
+	userID, ok := stream.Context().Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return status.Error(codes.Unauthenticated, "пользователь не авторизован")
+	}
+
+	err := s.repo.StreamFileChunks(
+		stream.Context(),
+		userID,
+		req.GetFileId(),
+		req.GetVersion(),
+		func(chunkNo int64, data []byte) error {
+			return stream.Send(&pb.DownloadFileChunk{
+				ChunkNo: chunkNo,
+				Data:    data,
+			})
+		},
+	)
+	if err != nil {
+		return grpcErr(err)
+	}
+
+	return nil
+}
+
+func (s *StorageServer) DeleteFile(ctx context.Context, req *pb.DeleteFileRequest) (*pb.DeleteInfoResponse, error) {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, status.Error(codes.Unauthenticated, "пользователь не авторизован")
+	}
+
+	err := s.repo.DeleteFile(ctx, userID, req.GetFileId(), req.GetVersion())
+	if err != nil {
 		return nil, grpcErr(err)
 	}
 

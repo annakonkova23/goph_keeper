@@ -54,3 +54,61 @@ func UnaryAuthInterceptor(jwtManager *JWTManager) grpc.UnaryServerInterceptor {
 		return handler(ctx, req)
 	}
 }
+
+func StreamAuthInterceptor(jwtManager *JWTManager) grpc.StreamServerInterceptor {
+	publicMethods := map[string]bool{
+		"/api.AuthService/Register": true,
+		"/api.AuthService/Login":    true,
+	}
+
+	return func(
+		srv any,
+		ss grpc.ServerStream,
+		info *grpc.StreamServerInfo,
+		handler grpc.StreamHandler,
+	) error {
+
+		if publicMethods[info.FullMethod] {
+			return handler(srv, ss)
+		}
+
+		md, ok := metadata.FromIncomingContext(ss.Context())
+		if !ok {
+			return status.Error(codes.Unauthenticated, "metadata не задан")
+		}
+
+		values := md.Get("authorization")
+		if len(values) == 0 {
+			return status.Error(codes.Unauthenticated, "authorization token не задан")
+		}
+
+		parts := strings.SplitN(values[0], " ", 2)
+		if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
+			return status.Error(codes.Unauthenticated, "невалидный authorization header")
+		}
+
+		token := parts[1]
+		userID, err := jwtManager.Verify(token)
+		if err != nil {
+			return status.Error(codes.Unauthenticated, "невалидный token")
+		}
+
+		ctx := context.WithValue(ss.Context(), UserIDKey, userID)
+
+		wrapped := &serverStreamWrapper{
+			ServerStream: ss,
+			ctx:          ctx,
+		}
+
+		return handler(srv, wrapped)
+	}
+}
+
+type serverStreamWrapper struct {
+	grpc.ServerStream
+	ctx context.Context
+}
+
+func (w *serverStreamWrapper) Context() context.Context {
+	return w.ctx
+}

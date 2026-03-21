@@ -1015,13 +1015,13 @@ func (x *UpdateBankCardDetailsRequest) GetVersion() int64 {
 }
 
 type StartUploadRequest struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	FileId          string                 `protobuf:"bytes,1,opt,name=file_id,json=fileId,proto3" json:"file_id,omitempty"`                             // пусто => создать новый логический файл
-	ExpectedVersion int64                  `protobuf:"varint,2,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"` // 0 для нового файла
-	Filename        string                 `protobuf:"bytes,3,opt,name=filename,proto3" json:"filename,omitempty"`
-	Meta            map[string]string      `protobuf:"bytes,4,rep,name=meta,proto3" json:"meta,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	FileId        string                 `protobuf:"bytes,1,opt,name=file_id,json=fileId,proto3" json:"file_id,omitempty"`
+	Version       int64                  `protobuf:"varint,2,opt,name=version,proto3" json:"version,omitempty"`
+	Filename      string                 `protobuf:"bytes,3,opt,name=filename,proto3" json:"filename,omitempty"`
+	Meta          map[string]string      `protobuf:"bytes,4,rep,name=meta,proto3" json:"meta,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *StartUploadRequest) Reset() {
@@ -1061,9 +1061,9 @@ func (x *StartUploadRequest) GetFileId() string {
 	return ""
 }
 
-func (x *StartUploadRequest) GetExpectedVersion() int64 {
+func (x *StartUploadRequest) GetVersion() int64 {
 	if x != nil {
-		return x.ExpectedVersion
+		return x.Version
 	}
 	return 0
 }
@@ -1255,13 +1255,13 @@ func (x *UploadChunksResponse) GetTotalBytes() int64 {
 }
 
 type CommitUploadRequest struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	UploadId        string                 `protobuf:"bytes,1,opt,name=upload_id,json=uploadId,proto3" json:"upload_id,omitempty"`
-	FileId          string                 `protobuf:"bytes,2,opt,name=file_id,json=fileId,proto3" json:"file_id,omitempty"`
-	ExpectedVersion int64                  `protobuf:"varint,3,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
-	Checksum        string                 `protobuf:"bytes,4,opt,name=checksum,proto3" json:"checksum,omitempty"` // опционально, если считаешь на клиенте
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UploadId      string                 `protobuf:"bytes,1,opt,name=upload_id,json=uploadId,proto3" json:"upload_id,omitempty"`
+	FileId        string                 `protobuf:"bytes,2,opt,name=file_id,json=fileId,proto3" json:"file_id,omitempty"`
+	Version       int64                  `protobuf:"varint,3,opt,name=version,proto3" json:"version,omitempty"`
+	Checksum      string                 `protobuf:"bytes,4,opt,name=checksum,proto3" json:"checksum,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CommitUploadRequest) Reset() {
@@ -1308,9 +1308,9 @@ func (x *CommitUploadRequest) GetFileId() string {
 	return ""
 }
 
-func (x *CommitUploadRequest) GetExpectedVersion() int64 {
+func (x *CommitUploadRequest) GetVersion() int64 {
 	if x != nil {
-		return x.ExpectedVersion
+		return x.Version
 	}
 	return 0
 }
@@ -1549,7 +1549,7 @@ func (x *GetFileMetaResponse) GetFile() *FileMeta {
 type DownloadFileRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	FileId        string                 `protobuf:"bytes,1,opt,name=file_id,json=fileId,proto3" json:"file_id,omitempty"`
-	Version       int64                  `protobuf:"varint,2,opt,name=version,proto3" json:"version,omitempty"` // 0 => current_version
+	Version       int64                  `protobuf:"varint,2,opt,name=version,proto3" json:"version,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1651,11 +1651,11 @@ func (x *DownloadFileChunk) GetData() []byte {
 }
 
 type DeleteFileRequest struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	FileId          string                 `protobuf:"bytes,1,opt,name=file_id,json=fileId,proto3" json:"file_id,omitempty"`
-	ExpectedVersion int64                  `protobuf:"varint,2,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	FileId        string                 `protobuf:"bytes,1,opt,name=file_id,json=fileId,proto3" json:"file_id,omitempty"`
+	Version       int64                  `protobuf:"varint,2,opt,name=version,proto3" json:"version,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *DeleteFileRequest) Reset() {
@@ -1695,9 +1695,9 @@ func (x *DeleteFileRequest) GetFileId() string {
 	return ""
 }
 
-func (x *DeleteFileRequest) GetExpectedVersion() int64 {
+func (x *DeleteFileRequest) GetVersion() int64 {
 	if x != nil {
-		return x.ExpectedVersion
+		return x.Version
 	}
 	return 0
 }
@@ -1780,10 +1780,10 @@ const file_keeper_proto_rawDesc = "" +
 	"\x1cUpdateBankCardDetailsRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12(\n" +
 	"\x04data\x18\x02 \x01(\v2\x14.api.BankCardDetailsR\x04data\x12\x18\n" +
-	"\aversion\x18\x03 \x01(\x03R\aversion\"\xe4\x01\n" +
+	"\aversion\x18\x03 \x01(\x03R\aversion\"\xd3\x01\n" +
 	"\x12StartUploadRequest\x12\x17\n" +
-	"\afile_id\x18\x01 \x01(\tR\x06fileId\x12)\n" +
-	"\x10expected_version\x18\x02 \x01(\x03R\x0fexpectedVersion\x12\x1a\n" +
+	"\afile_id\x18\x01 \x01(\tR\x06fileId\x12\x18\n" +
+	"\aversion\x18\x02 \x01(\x03R\aversion\x12\x1a\n" +
 	"\bfilename\x18\x03 \x01(\tR\bfilename\x125\n" +
 	"\x04meta\x18\x04 \x03(\v2!.api.StartUploadRequest.MetaEntryR\x04meta\x1a7\n" +
 	"\tMetaEntry\x12\x10\n" +
@@ -1800,11 +1800,11 @@ const file_keeper_proto_rawDesc = "" +
 	"\tupload_id\x18\x01 \x01(\tR\buploadId\x12'\n" +
 	"\x0freceived_chunks\x18\x02 \x01(\x03R\x0ereceivedChunks\x12\x1f\n" +
 	"\vtotal_bytes\x18\x03 \x01(\x03R\n" +
-	"totalBytes\"\x92\x01\n" +
+	"totalBytes\"\x81\x01\n" +
 	"\x13CommitUploadRequest\x12\x1b\n" +
 	"\tupload_id\x18\x01 \x01(\tR\buploadId\x12\x17\n" +
-	"\afile_id\x18\x02 \x01(\tR\x06fileId\x12)\n" +
-	"\x10expected_version\x18\x03 \x01(\x03R\x0fexpectedVersion\x12\x1a\n" +
+	"\afile_id\x18\x02 \x01(\tR\x06fileId\x12\x18\n" +
+	"\aversion\x18\x03 \x01(\x03R\aversion\x12\x1a\n" +
 	"\bchecksum\x18\x04 \x01(\tR\bchecksum\"P\n" +
 	"\x14CommitUploadResponse\x12\x17\n" +
 	"\afile_id\x18\x01 \x01(\tR\x06fileId\x12\x1f\n" +
@@ -1830,10 +1830,10 @@ const file_keeper_proto_rawDesc = "" +
 	"\aversion\x18\x02 \x01(\x03R\aversion\"B\n" +
 	"\x11DownloadFileChunk\x12\x19\n" +
 	"\bchunk_no\x18\x01 \x01(\x03R\achunkNo\x12\x12\n" +
-	"\x04data\x18\x02 \x01(\fR\x04data\"W\n" +
+	"\x04data\x18\x02 \x01(\fR\x04data\"F\n" +
 	"\x11DeleteFileRequest\x12\x17\n" +
-	"\afile_id\x18\x01 \x01(\tR\x06fileId\x12)\n" +
-	"\x10expected_version\x18\x02 \x01(\x03R\x0fexpectedVersion2v\n" +
+	"\afile_id\x18\x01 \x01(\tR\x06fileId\x12\x18\n" +
+	"\aversion\x18\x02 \x01(\x03R\aversion2v\n" +
 	"\vAuthService\x127\n" +
 	"\bRegister\x12\x14.api.RegisterRequest\x1a\x15.api.RegisterResponse\x12.\n" +
 	"\x05Login\x12\x11.api.LoginRequest\x1a\x12.api.LoginResponse2\xca\t\n" +

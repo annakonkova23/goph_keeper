@@ -9,6 +9,121 @@ import (
 	"github.com/konkovaanna23/gophkeeper/internal/model"
 )
 
+var insertFiles string = `
+	INSERT INTO storage.files(id, user_id, current_version)
+	VALUES ($1, $2, 0)
+`
+
+var checkFiles string = `
+			SELECT 1
+			FROM storage.files
+			WHERE id = $1
+			  AND user_id = $2
+			  AND deleted_at IS NULL
+		`
+
+var insertUploads string = `
+		INSERT INTO storage.uploads(id, file_id, user_id, expected_version, filename, meta, status)
+		VALUES ($1, $2, $3, $4, $5, $6, 'pending')
+	`
+var insertUploadsChunks string = `
+		INSERT INTO storage.upload_chunks(upload_id, chunk_no, data, size_bytes)
+		SELECT u.id, $2, $3::BYTEA, octet_length($3::BYTEA)
+		FROM storage.uploads u
+		WHERE u.id = $1
+		  AND u.user_id = $4
+		  AND u.status = 'pending'
+		ON CONFLICT (upload_id, chunk_no)
+		DO UPDATE SET
+			data = EXCLUDED.data,
+			size_bytes = EXCLUDED.size_bytes
+	`
+
+var selectUpload string = `
+		SELECT file_id, expected_version, filename, meta
+		FROM storage.uploads
+		WHERE id = $1
+		  AND user_id = $2
+		  AND status = 'pending'
+		FOR UPDATE
+	`
+
+var selectCurrentVersion string = `
+		SELECT current_version
+		FROM storage.files
+		WHERE id = $1
+		  AND user_id = $2
+		  AND deleted_at IS NULL
+		FOR UPDATE
+	`
+
+var selectCountChunks string = `
+		SELECT COALESCE(SUM(size_bytes), 0), COUNT(*)
+		FROM storage.upload_chunks
+		WHERE upload_id = $1
+	`
+
+var insertFileVersions string = `
+		INSERT INTO storage.file_versions(file_id, version, filename, size_bytes, checksum, meta)
+		VALUES ($1, $2, $3, $4, $5, $6)
+	`
+var insertFileChunks string = `
+		INSERT INTO storage.file_chunks(file_id, version, chunk_no, data, size_bytes)
+		SELECT $1, $2, uc.chunk_no, uc.data, uc.size_bytes
+		FROM storage.upload_chunks uc
+		WHERE uc.upload_id = $3
+	`
+
+var updateVersionFiles string = `
+		UPDATE storage.files
+		SET current_version = $2
+		WHERE id = $1
+	`
+
+var updateStatusUploads string = `
+		UPDATE storage.uploads
+		SET status = 'committed'
+		WHERE id = $1
+	`
+
+var selectFiles string = `
+		SELECT f.id, f.current_version, fv.filename, fv.size_bytes, fv.checksum, fv.meta
+		FROM storage.files f
+		JOIN storage.file_versions fv
+		  ON fv.file_id = f.id
+		 AND fv.version = f.current_version
+		WHERE f.id = $1
+		  AND f.user_id = $2
+		  AND f.deleted_at IS NULL
+	`
+
+var selectExistsVersion string = `
+		SELECT 1
+		FROM storage.file_versions fv
+		JOIN storage.files f ON f.id = fv.file_id
+		WHERE fv.file_id = $1
+		  AND fv.version = $2
+		  AND f.user_id = $3
+		  AND f.deleted_at IS NULL
+`
+
+var selectChunkData string = `
+		SELECT chunk_no, data
+		FROM storage.file_chunks
+		WHERE file_id = $1
+		  AND version = $2
+		ORDER BY chunk_no
+	`
+
+var updateDeleteFiles string = `
+		UPDATE storage.files
+		SET deleted_at = now()
+		WHERE id = $1
+		  AND user_id = $2
+		  AND current_version = $3
+		  AND deleted_at IS NULL
+	`
+
 func (ds *DBStore) StartUpload(ctx context.Context, userID string, fileID string, expectedVersion int64, filename string, meta map[string]string, newID func() string) (string, string, error) {
 	var uploadID, outFileID string
 	metaJSON, err := json.Marshal(meta)
@@ -27,22 +142,13 @@ func (ds *DBStore) StartUpload(ctx context.Context, userID string, fileID string
 		outFileID = newID()
 		expectedVersion = 0
 
-		_, err = tx.ExecContext(ctx, `
-			INSERT INTO storage.files(id, user_id, current_version)
-			VALUES ($1, $2, 0)
-		`, outFileID, userID)
+		_, err = tx.ExecContext(ctx, insertFiles, outFileID, userID)
 		if err != nil {
 			return "", "", err
 		}
 	} else {
 		var dummy int
-		err = tx.QueryRowContext(ctx, `
-			SELECT 1
-			FROM storage.files
-			WHERE id = $1
-			  AND owner_id = $2
-			  AND deleted_at IS NULL
-		`, outFileID, userID).Scan(&dummy)
+		err = tx.QueryRowContext(ctx, checkFiles, outFileID, userID).Scan(&dummy)
 		if errors.Is(err, sql.ErrNoRows) {
 			return "", "", ErrorNotContent
 		}
@@ -53,10 +159,7 @@ func (ds *DBStore) StartUpload(ctx context.Context, userID string, fileID string
 
 	uploadID = newID()
 
-	_, err = tx.ExecContext(ctx, `
-		INSERT INTO uploads(id, file_id, owner_id, expected_version, filename, meta, status)
-		VALUES ($1, $2, $3, $4, $5, $6, 'pending')
-	`, uploadID, outFileID, userID, expectedVersion, filename, metaJSON)
+	_, err = tx.ExecContext(ctx, insertUploads, uploadID, outFileID, userID, expectedVersion, filename, metaJSON)
 	if err != nil {
 		return "", "", err
 	}
@@ -69,18 +172,7 @@ func (ds *DBStore) StartUpload(ctx context.Context, userID string, fileID string
 }
 
 func (ds *DBStore) PutUploadChunk(ctx context.Context, userID string, uploadID string, chunkNo int64, data []byte) error {
-	res, err := ds.database.ExecContext(ctx, `
-		INSERT INTO upload_chunks(upload_id, chunk_no, data, size_bytes)
-		SELECT u.id, $2, $3, octet_length($3)
-		FROM uploads u
-		WHERE u.id = $1
-		  AND u.owner_id = $4
-		  AND u.status = 'pending'
-		ON CONFLICT (upload_id, chunk_no)
-		DO UPDATE SET
-			data = EXCLUDED.data,
-			size_bytes = EXCLUDED.size_bytes
-	`, uploadID, chunkNo, data, userID)
+	res, err := ds.database.ExecContext(ctx, insertUploadsChunks, uploadID, chunkNo, data, userID)
 	if err != nil {
 		return err
 	}
@@ -108,14 +200,7 @@ func (ds *DBStore) CommitUpload(ctx context.Context, userID string, uploadID str
 	var filename string
 	var metaJSON []byte
 
-	err = tx.QueryRowContext(ctx, `
-		SELECT file_id, expected_version, filename, meta
-		FROM uploads
-		WHERE id = $1
-		  AND owner_id = $2
-		  AND status = 'pending'
-		FOR UPDATE
-	`, uploadID, userID).Scan(&sessFileID, &sessExpectedVersion, &filename, &metaJSON)
+	err = tx.QueryRowContext(ctx, selectUpload, uploadID, userID).Scan(&sessFileID, &sessExpectedVersion, &filename, &metaJSON)
 	if errors.Is(err, sql.ErrNoRows) {
 		return "", 0, ErrorNotContent
 	}
@@ -131,14 +216,7 @@ func (ds *DBStore) CommitUpload(ctx context.Context, userID string, uploadID str
 	}
 
 	var currentVersion int64
-	err = tx.QueryRowContext(ctx, `
-		SELECT current_version
-		FROM files
-		WHERE id = $1
-		  AND owner_id = $2
-		  AND deleted_at IS NULL
-		FOR UPDATE
-	`, sessFileID, userID).Scan(&currentVersion)
+	err = tx.QueryRowContext(ctx, selectCurrentVersion, sessFileID, userID).Scan(&currentVersion)
 	if errors.Is(err, sql.ErrNoRows) {
 		return "", 0, ErrorNotContent
 	}
@@ -152,11 +230,7 @@ func (ds *DBStore) CommitUpload(ctx context.Context, userID string, uploadID str
 
 	var totalSize int64
 	var chunksCount int64
-	err = tx.QueryRowContext(ctx, `
-		SELECT COALESCE(SUM(size_bytes), 0), COUNT(*)
-		FROM upload_chunks
-		WHERE upload_id = $1
-	`, uploadID).Scan(&totalSize, &chunksCount)
+	err = tx.QueryRowContext(ctx, selectCountChunks, uploadID).Scan(&totalSize, &chunksCount)
 	if err != nil {
 		return "", 0, err
 	}
@@ -166,38 +240,22 @@ func (ds *DBStore) CommitUpload(ctx context.Context, userID string, uploadID str
 
 	newVersion := currentVersion + 1
 
-	_, err = tx.ExecContext(ctx, `
-		INSERT INTO file_versions(file_id, version, filename, size_bytes, checksum, meta)
-		VALUES ($1, $2, $3, $4, $5, $6)
-	`, sessFileID, newVersion, filename, totalSize, checksum, metaJSON)
+	_, err = tx.ExecContext(ctx, insertFileVersions, sessFileID, newVersion, filename, totalSize, checksum, metaJSON)
 	if err != nil {
 		return "", 0, err
 	}
 
-	_, err = tx.ExecContext(ctx, `
-		INSERT INTO file_chunks(file_id, version, chunk_no, data, size_bytes)
-		SELECT $1, $2, uc.chunk_no, uc.data, uc.size_bytes
-		FROM upload_chunks uc
-		WHERE uc.upload_id = $3
-	`, sessFileID, newVersion, uploadID)
+	_, err = tx.ExecContext(ctx, insertFileChunks, sessFileID, newVersion, uploadID)
 	if err != nil {
 		return "", 0, err
 	}
 
-	_, err = tx.ExecContext(ctx, `
-		UPDATE files
-		SET current_version = $2
-		WHERE id = $1
-	`, sessFileID, newVersion)
+	_, err = tx.ExecContext(ctx, updateVersionFiles, sessFileID, newVersion)
 	if err != nil {
 		return "", 0, err
 	}
 
-	_, err = tx.ExecContext(ctx, `
-		UPDATE uploads
-		SET status = 'committed'
-		WHERE id = $1
-	`, uploadID)
+	_, err = tx.ExecContext(ctx, updateStatusUploads, uploadID)
 	if err != nil {
 		return "", 0, err
 	}
@@ -212,16 +270,7 @@ func (ds *DBStore) CommitUpload(ctx context.Context, userID string, uploadID str
 func (ds *DBStore) GetFileMeta(ctx context.Context, userID string, fileID string) (*model.FileMeta, error) {
 	var meta model.FileMeta
 
-	err := ds.database.QueryRowContext(ctx, `
-		SELECT f.id, f.current_version, fv.filename, fv.size_bytes, fv.checksum, fv.meta
-		FROM files f
-		JOIN file_versions fv
-		  ON fv.file_id = f.id
-		 AND fv.version = f.current_version
-		WHERE f.id = $1
-		  AND f.owner_id = $2
-		  AND f.deleted_at IS NULL
-	`, fileID, userID).Scan(
+	err := ds.database.QueryRowContext(ctx, selectFiles, fileID, userID).Scan(
 		&meta.FileID,
 		&meta.CurrentVersion,
 		&meta.Filename,
@@ -242,13 +291,7 @@ func (ds *DBStore) GetFileMeta(ctx context.Context, userID string, fileID string
 func (ds *DBStore) resolveVersion(ctx context.Context, userID string, fileID string, version int64) (int64, error) {
 	if version == 0 {
 		var currentVersion int64
-		err := ds.database.QueryRowContext(ctx, `
-			SELECT current_version
-			FROM files
-			WHERE id = $1
-			  AND owner_id = $2
-			  AND deleted_at IS NULL
-		`, fileID, userID).Scan(&currentVersion)
+		err := ds.database.QueryRowContext(ctx, selectCurrentVersion, fileID, userID).Scan(&currentVersion)
 		if errors.Is(err, sql.ErrNoRows) {
 			return 0, ErrorNotContent
 		}
@@ -262,15 +305,7 @@ func (ds *DBStore) resolveVersion(ctx context.Context, userID string, fileID str
 	}
 
 	var dummy int
-	err := ds.database.QueryRowContext(ctx, `
-		SELECT 1
-		FROM file_versions fv
-		JOIN files f ON f.id = fv.file_id
-		WHERE fv.file_id = $1
-		  AND fv.version = $2
-		  AND f.owner_id = $3
-		  AND f.deleted_at IS NULL
-	`, fileID, version, userID).Scan(&dummy)
+	err := ds.database.QueryRowContext(ctx, selectExistsVersion, fileID, version, userID).Scan(&dummy)
 	if errors.Is(err, sql.ErrNoRows) {
 		return 0, ErrorNotContent
 	}
@@ -287,13 +322,7 @@ func (ds *DBStore) StreamFileChunks(ctx context.Context, userID string, fileID s
 		return err
 	}
 
-	rows, err := ds.database.QueryContext(ctx, `
-		SELECT chunk_no, data
-		FROM file_chunks
-		WHERE file_id = $1
-		  AND version = $2
-		ORDER BY chunk_no
-	`, fileID, resolvedVersion)
+	rows, err := ds.database.QueryContext(ctx, selectChunkData, fileID, resolvedVersion)
 	if err != nil {
 		return err
 	}
@@ -324,14 +353,7 @@ func (ds *DBStore) StreamFileChunks(ctx context.Context, userID string, fileID s
 }
 
 func (ds *DBStore) DeleteFile(ctx context.Context, userID string, fileID string, expectedVersion int64) error {
-	res, err := ds.database.ExecContext(ctx, `
-		UPDATE files
-		SET deleted_at = now()
-		WHERE id = $1
-		  AND owner_id = $2
-		  AND current_version = $3
-		  AND deleted_at IS NULL
-	`, fileID, userID, expectedVersion)
+	res, err := ds.database.ExecContext(ctx, updateDeleteFiles, fileID, userID, expectedVersion)
 	if err != nil {
 		return err
 	}
