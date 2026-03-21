@@ -82,9 +82,9 @@ func lookupEnvBool(key string) (bool, bool) {
 
 // GetConfig возвращает конфигурацию приложения.
 // Приоритет: ФЛАГИ > ENV > CONFIG(JSON) > DEFAULTS.
-func GetConfig() *ConfigServer {
+func GetConfigServer() *ConfigServer {
 
-	cfgFlag := readFlag()
+	cfgFlag := readServerFlag()
 
 	cfg := defaultConfig()
 
@@ -101,22 +101,22 @@ func GetConfig() *ConfigServer {
 	}
 
 	if configPath != "" {
-		fc, err := loadConfigFile(configPath)
+		fc, err := loadServerConfigFile(configPath)
 		if err != nil {
 			log.Println("Ошибка чтения файла конфига:", err.Error())
 		} else {
-			applyConfigFile(cfg, fc)
+			applyServerConfigFile(cfg, fc)
 		}
 	}
 
-	applyEnv(cfg)
+	applyServerEnv(cfg)
 
-	applyFlag(cfg, cfgFlag)
+	applyServerFlag(cfg, cfgFlag)
 
 	return cfg
 }
 
-func readFlag() *configServerPointer {
+func readServerFlag() *configServerPointer {
 	grpcServerFlag := flag.String("g", "", "Адрес gRPC-сервера")
 	dsnFlag := flag.String("d", "", "DSN для подключения к базе данных")
 	keyFlag := flag.String("k", "", "Ключ для шифрования данных")
@@ -138,7 +138,7 @@ func readFlag() *configServerPointer {
 	}
 }
 
-func applyEnv(cfg *ConfigServer) {
+func applyServerEnv(cfg *ConfigServer) {
 
 	if v, ok := lookupEnvString("DSN"); ok {
 		cfg.DSN = v
@@ -165,7 +165,7 @@ func applyEnv(cfg *ConfigServer) {
 	}
 }
 
-func applyFlag(dst *ConfigServer, src *configServerPointer) {
+func applyServerFlag(dst *ConfigServer, src *configServerPointer) {
 	flag.CommandLine.Visit(func(f *flag.Flag) {
 		switch f.Name {
 		case "d":
@@ -184,7 +184,7 @@ func applyFlag(dst *ConfigServer, src *configServerPointer) {
 	})
 }
 
-func loadConfigFile(jsonFile string) (*configServerPointer, error) {
+func loadServerConfigFile(jsonFile string) (*configServerPointer, error) {
 	data, err := file.ReadFromFile(jsonFile)
 	if err != nil {
 		return nil, err
@@ -197,7 +197,7 @@ func loadConfigFile(jsonFile string) (*configServerPointer, error) {
 	return &fc, nil
 }
 
-func applyConfigFile(dst *ConfigServer, src *configServerPointer) {
+func applyServerConfigFile(dst *ConfigServer, src *configServerPointer) {
 	if src.DSN != nil {
 		dst.DSN = *src.DSN
 	}

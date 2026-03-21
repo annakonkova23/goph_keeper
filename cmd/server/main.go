@@ -46,7 +46,7 @@ func main() {
 
 	errCh := make(chan error, 1)
 
-	cfg := config.GetConfig()
+	cfg := config.GetConfigServer()
 	database, err := db.NewConnect(cfg.DSN)
 	if err != nil {
 		logger.Fatal("ошибка при подключении к базе данных:", zap.Error(err))

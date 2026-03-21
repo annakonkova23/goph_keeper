@@ -1,10 +1,12 @@
 package middleware
 
 import (
+	"bytes"
+	"go.uber.org/zap"
+	"io"
 	"net/http"
+	"strings"
 	"time"
-
-	"github.com/sirupsen/logrus"
 )
 
 type responseLogger struct {
@@ -13,7 +15,6 @@ type responseLogger struct {
 	size   int
 }
 
-// WriteHeader устанавливает StatusCode.
 func (l *responseLogger) WriteHeader(code int) {
 	if l.status != 0 {
 		return
@@ -22,7 +23,6 @@ func (l *responseLogger) WriteHeader(code int) {
 	l.ResponseWriter.WriteHeader(code)
 }
 
-// Write записывает данные в буфер.
 func (l *responseLogger) Write(b []byte) (int, error) {
 	if l.status == 0 {
 		l.status = http.StatusOK
@@ -32,23 +32,34 @@ func (l *responseLogger) Write(b []byte) (int, error) {
 	return size, err
 }
 
-// LoggingMiddleware логирует запросы.
-func LoggingMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
-		uri := r.URL.RequestURI()
-		method := r.Method
+func LoggingMiddleware(log *zap.Logger) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			start := time.Now()
+			uri := r.URL.RequestURI()
+			method := r.Method
+			contentType := r.Header.Get("Content-Type")
 
-		logger := &responseLogger{ResponseWriter: w}
+			var bodyBytes []byte
+			if r.Body != nil && (contentType == "" || !strings.HasPrefix(contentType, "multipart/")) {
+				bodyBytes, _ = io.ReadAll(r.Body)
+				r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+			}
+			log := log.With(zap.String("method", method),
+				zap.String("uri", uri))
+			log.Info("Получен запрос",
+				zap.String("content_type", contentType),
+				zap.ByteString("body", bodyBytes))
 
-		next.ServeHTTP(logger, r)
+			logger := &responseLogger{ResponseWriter: w}
 
-		logrus.WithFields(logrus.Fields{
-			"method":      method,
-			"uri":         uri,
-			"status":      logger.status,
-			"duration":    time.Since(start).String(),
-			"content_len": logger.size,
-		}).Info("Запрос выполнен")
-	})
+			next.ServeHTTP(logger, r)
+
+			log.Info("Запрос выполнен",
+				zap.Int("status", logger.status),
+				zap.Duration("time", time.Since(start)),
+				zap.Int("size", logger.size),
+			)
+		})
+	}
 }
