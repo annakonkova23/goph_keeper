@@ -159,10 +159,10 @@ func (ds *fileStore) StartUpload(ctx context.Context, userID string, fileID stri
 	} else {
 		var dummy int
 		err = tx.QueryRowContext(ctx, checkFiles, outFileID, userID).Scan(&dummy)
-		if errors.Is(err, sql.ErrNoRows) {
-			return "", "", ErrorNotContent
-		}
 		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return "", "", ErrorNotContent
+			}
 			return "", "", err
 		}
 	}
