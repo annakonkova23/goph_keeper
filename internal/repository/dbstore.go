@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"iter"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -9,39 +10,163 @@ import (
 	"go.uber.org/zap"
 )
 
-type StoreRepository interface {
+type UserStore interface {
 	CreateUser(ctx context.Context, id, login, password string) error
 	GetUserByLogin(ctx context.Context, loginSrc string) (string, string, error)
-	CreateAuthData(ctx context.Context, auth *model.AuthData) (int64, error)
-	GetAuthData(ctx context.Context, userID, authID string) (*model.AuthData, error)
-	UpdateAuthData(ctx context.Context, auth *model.AuthData, expectedVersion int64) (int64, error)
-	DeleteAuthData(ctx context.Context, userID, authID string, expectedVersion int64) error
+}
+
+type FileChunk struct {
+	ChunkNo int64
+	Data    []byte
+}
+
+type FileStore interface {
 	StartUpload(ctx context.Context, userID string, fileID string, expectedVersion int64, filename string, meta map[string]string, newID func() string) (string, string, error)
 	PutUploadChunk(ctx context.Context, userID string, uploadID string, chunkNo int64, data []byte) error
 	CommitUpload(ctx context.Context, userID string, uploadID string, fileID string, expectedVersion int64, checksum string) (string, int64, error)
 	GetFileMeta(ctx context.Context, userID string, fileID string) (*model.FileMeta, error)
-	StreamFileChunks(ctx context.Context, userID string, fileID string, version int64, fn func(chunkNo int64, data []byte) error) error
+	Chunks(ctx context.Context, userID, fileID string, version int64) iter.Seq2[*FileChunk, error]
 	DeleteFile(ctx context.Context, userID string, fileID string, expectedVersion int64) error
-	CreateTextData(ctx context.Context, text *model.TextData) (int64, error)
-	GetTextData(ctx context.Context, userID, textID string) (*model.TextData, error)
-	UpdateTextData(ctx context.Context, text *model.TextData, expectedVersion int64) (int64, error)
-	DeleteTextData(ctx context.Context, userID, textID string, expectedVersion int64) error
-	CreateBankCardData(ctx context.Context, card *model.BankCardData) (int64, error)
-	GetBankCardData(ctx context.Context, userID, cardID string) (*model.BankCardData, error)
-	UpdateBankCardData(ctx context.Context, card *model.BankCardData, expectedVersion int64) (int64, error)
-	DeleteBankCardData(ctx context.Context, userID, cardID string, expectedVersion int64) error
+}
+
+type StoreRepository interface {
+	Users() UserStore
+	Auths() CRUDRepository[model.AuthData]
+	Texts() CRUDRepository[model.TextData]
+	Cards() CRUDRepository[model.BankCardData]
+	Files() FileStore
 }
 
 type DBStore struct {
 	database        *sqlx.DB
 	timeoutInterval time.Duration
 	logger          *zap.Logger
+
+	auths CRUDRepository[model.AuthData]
+	texts CRUDRepository[model.TextData]
+	cards CRUDRepository[model.BankCardData]
+	users UserStore
+	files FileStore
 }
+
+func (ds *DBStore) Users() UserStore                          { return ds.users }
+func (ds *DBStore) Auths() CRUDRepository[model.AuthData]     { return ds.auths }
+func (ds *DBStore) Texts() CRUDRepository[model.TextData]     { return ds.texts }
+func (ds *DBStore) Cards() CRUDRepository[model.BankCardData] { return ds.cards }
+func (ds *DBStore) Files() FileStore                          { return ds.files }
 
 func NewDBStore(logger *zap.Logger, db *sqlx.DB, timeout time.Duration) *DBStore {
 	return &DBStore{
 		database:        db,
 		timeoutInterval: timeout,
 		logger:          logger,
+		auths:           newAuthRepo(db),
+		texts:           newTextRepo(db),
+		cards:           newBankCardRepo(db),
+		users:           newUsersRepo(db),
+		files:           newFilesRepo(db),
+	}
+}
+
+func newBankCardRepo(db *sqlx.DB) CRUDRepository[model.BankCardData] {
+	return sqlCRUDRepo[model.BankCardData]{
+		db: db,
+		spec: entitySpec[model.BankCardData]{
+			insertSQL: insertBankCardData,
+			selectSQL: selectBankCardData,
+			updateSQL: updateBankCardData,
+			deleteSQL: deleteBankCardData,
+
+			insertArgs: func(c *model.BankCardData) []any {
+				return []any{
+					c.ID, c.UserID, c.Last4, c.NumberEncrypted,
+					c.ExpMonth, c.ExpYear, c.Owner, c.Meta,
+				}
+			},
+			updateArgs: func(c *model.BankCardData, expectedVersion int64) []any {
+				return []any{
+					c.Last4,
+					c.NumberEncrypted,
+					c.ExpMonth,
+					c.ExpYear,
+					c.Owner,
+					c.Meta,
+					c.ID, c.UserID, expectedVersion,
+				}
+			},
+			scanDest: func(c *model.BankCardData) []any {
+				return []any{
+					&c.Last4,
+					&c.NumberEncrypted,
+					&c.ExpMonth,
+					&c.ExpYear,
+					&c.Owner,
+					&c.Meta,
+					&c.Version,
+					&c.UpdatedAt,
+				}
+			},
+		},
+	}
+}
+
+func newTextRepo(db *sqlx.DB) CRUDRepository[model.TextData] {
+	return sqlCRUDRepo[model.TextData]{
+		db: db,
+		spec: entitySpec[model.TextData]{
+			insertSQL: insertTextData,
+			selectSQL: selectTextData,
+			updateSQL: updateTextData,
+			deleteSQL: deleteTextData,
+
+			insertArgs: func(t *model.TextData) []any {
+				return []any{t.ID, t.UserID, t.Data, t.Meta}
+			},
+			updateArgs: func(t *model.TextData, expectedVersion int64) []any {
+				return []any{
+					t.Data, t.Meta,
+					t.ID, t.UserID, expectedVersion,
+				}
+			},
+			scanDest: func(t *model.TextData) []any {
+				return []any{
+					&t.Data,
+					&t.Meta,
+					&t.Version,
+					&t.UpdatedAt,
+				}
+			},
+		},
+	}
+}
+
+func newAuthRepo(db *sqlx.DB) CRUDRepository[model.AuthData] {
+	return sqlCRUDRepo[model.AuthData]{
+		db: db,
+		spec: entitySpec[model.AuthData]{
+			insertSQL: insertAuthData,
+			selectSQL: selectAuthData,
+			updateSQL: updateAuthData,
+			deleteSQL: deleteAuthData,
+
+			insertArgs: func(a *model.AuthData) []any {
+				return []any{a.ID, a.UserID, a.Login, a.Password, a.Meta}
+			},
+			updateArgs: func(a *model.AuthData, expectedVersion int64) []any {
+				return []any{
+					a.Login, a.Password, a.Meta,
+					a.ID, a.UserID, expectedVersion,
+				}
+			},
+			scanDest: func(a *model.AuthData) []any {
+				return []any{
+					&a.Login,
+					&a.Password,
+					&a.Meta,
+					&a.Version,
+					&a.UpdatedAt,
+				}
+			},
+		},
 	}
 }

@@ -47,17 +47,75 @@ func grpcErr(err error) error {
 	}
 }
 
-func (s *StorageServer) CreateAuthInfo(ctx context.Context, req *pb.AuthInfo) (*pb.CreateInfoResponse, error) {
+func userIDFromCtx(ctx context.Context) (string, error) {
 	userID, ok := ctx.Value(auth.UserIDKey).(string)
 	if !ok || userID == "" {
-		return nil, status.Error(codes.Unauthenticated, "пользователь не авторизован")
+		return "", status.Error(codes.Unauthenticated, "пользователь не авторизован")
+	}
+	return userID, nil
+}
+
+func marshalMeta(meta map[string]string) ([]byte, error) {
+	if meta == nil {
+		return []byte("{}"), nil
 	}
 
-	metaJSON, _ := json.Marshal(req.GetMeta())
+	b, err := json.Marshal(meta)
+	if err != nil {
+		return nil, fmt.Errorf("ошибка marshal meta: %w", err)
+	}
+
+	return b, nil
+}
+
+func unmarshalMeta(raw []byte) (map[string]string, error) {
+	if len(raw) == 0 {
+		return map[string]string{}, nil
+	}
+
+	var meta map[string]string
+	if err := json.Unmarshal(raw, &meta); err != nil {
+		return nil, fmt.Errorf("ошибка unmarshal meta: %w", err)
+	}
+
+	if meta == nil {
+		meta = map[string]string{}
+	}
+
+	return meta, nil
+}
+
+func parseLast4(number string) (uint32, error) {
+	if len(number) < 4 {
+		return 0, status.Error(codes.InvalidArgument, "номер карты должен содержать минимум 4 цифры")
+	}
+
+	last4 := number[len(number)-4:]
+	n, err := strconv.ParseUint(last4, 10, 32)
+	if err != nil {
+		return 0, status.Error(codes.InvalidArgument, "номер карты должен заканчиваться цифрами")
+	}
+
+	return uint32(n), nil
+}
+
+func (s *StorageServer) CreateAuthInfo(ctx context.Context, req *pb.AuthInfo) (*pb.CreateInfoResponse, error) {
+	userID, err := userIDFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	metaJSON, err := marshalMeta(req.Meta)
+	if err != nil {
+		return nil, err
+	}
+
 	password, err := crypto.Encrypt([]byte(req.GetPassword()), s.key)
 	if err != nil {
+		s.lgr.Error("ошибка шифрования пароля", zap.Error(err))
 		return nil, fmt.Errorf("ошибка шифрования пароля %w", err)
 	}
+
 	auth := &model.AuthData{
 		ID:       NewUUID(),
 		UserID:   userID,
@@ -66,7 +124,7 @@ func (s *StorageServer) CreateAuthInfo(ctx context.Context, req *pb.AuthInfo) (*
 		Meta:     metaJSON,
 	}
 
-	version, err := s.repo.CreateAuthData(ctx, auth)
+	version, err := s.repo.Auths().Create(ctx, auth)
 	if err != nil {
 		s.lgr.Error("ошибка создания auth информации", zap.Error(err))
 		return nil, grpcErr(err)
@@ -79,12 +137,12 @@ func (s *StorageServer) CreateAuthInfo(ctx context.Context, req *pb.AuthInfo) (*
 }
 
 func (s *StorageServer) GetAuthInfo(ctx context.Context, req *pb.GetInfoRequest) (*pb.StoredAuthInfo, error) {
-	userID, ok := ctx.Value(auth.UserIDKey).(string)
-	if !ok || userID == "" {
-		return nil, status.Error(codes.Unauthenticated, "пользователь не авторизован")
+	userID, err := userIDFromCtx(ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	auth, err := s.repo.GetAuthData(ctx, userID, req.GetId())
+	auth, err := s.repo.Auths().Get(ctx, userID, req.GetId())
 	if err != nil {
 		s.lgr.Error("ошибка получения auth информации", zap.Error(err))
 		return nil, grpcErr(err)
@@ -95,12 +153,12 @@ func (s *StorageServer) GetAuthInfo(ctx context.Context, req *pb.GetInfoRequest)
 		s.lgr.Error("ошибка дешифрования пароля", zap.Error(err))
 		return nil, fmt.Errorf("ошибка дешифрования пароля")
 	}
-	var meta map[string]string
-	err = json.Unmarshal(auth.Meta, &meta)
+
+	meta, err := unmarshalMeta(auth.Meta)
 	if err != nil {
-		s.lgr.Error("ошибка unmarshal meta", zap.Error(err))
-		return nil, fmt.Errorf("ошибка unmarshal meta")
+		return nil, err
 	}
+
 	data := &pb.AuthInfo{
 		Login:    auth.Login,
 		Password: string(password),
@@ -115,21 +173,22 @@ func (s *StorageServer) GetAuthInfo(ctx context.Context, req *pb.GetInfoRequest)
 }
 
 func (s *StorageServer) UpdateAuthInfo(ctx context.Context, req *pb.UpdateAuthInfoRequest) (*pb.UpdateInfoResponse, error) {
-	userID, ok := ctx.Value(auth.UserIDKey).(string)
-	if !ok || userID == "" {
-		return nil, status.Error(codes.Unauthenticated, "пользователь не авторизован")
+	userID, err := userIDFromCtx(ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	metaJSON, err := json.Marshal(req.GetData().GetMeta())
+	metaJSON, err := marshalMeta(req.GetData().GetMeta())
 	if err != nil {
-		s.lgr.Error("ошибка marshal meta", zap.Error(err))
-		return nil, fmt.Errorf("ошибка marshal meta")
+		return nil, err
 	}
+
 	password, err := crypto.Encrypt([]byte(req.GetData().GetPassword()), s.key)
 	if err != nil {
 		s.lgr.Error("ошибка шифрования пароля", zap.Error(err))
 		return nil, fmt.Errorf("ошибка шифрования пароля %w", err)
 	}
+
 	auth := &model.AuthData{
 		ID:       req.Id,
 		UserID:   userID,
@@ -138,7 +197,7 @@ func (s *StorageServer) UpdateAuthInfo(ctx context.Context, req *pb.UpdateAuthIn
 		Meta:     metaJSON,
 	}
 
-	newVersion, err := s.repo.UpdateAuthData(ctx, auth, req.GetVersion())
+	newVersion, err := s.repo.Auths().Update(ctx, auth, req.GetVersion())
 	if err != nil {
 		s.lgr.Error("ошибка обновления auth", zap.Error(err))
 		return nil, grpcErr(err)
@@ -150,12 +209,12 @@ func (s *StorageServer) UpdateAuthInfo(ctx context.Context, req *pb.UpdateAuthIn
 }
 
 func (s *StorageServer) DeleteAuthInfo(ctx context.Context, req *pb.DeleteInfoRequest) (*pb.DeleteInfoResponse, error) {
-	userID, ok := ctx.Value(auth.UserIDKey).(string)
-	if !ok || userID == "" {
-		return nil, status.Error(codes.Unauthenticated, "пользователь не авторизован")
+	userID, err := userIDFromCtx(ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	err := s.repo.DeleteAuthData(ctx, userID, req.GetId(), req.GetVersion())
+	err = s.repo.Auths().Delete(ctx, userID, req.GetId(), req.GetVersion())
 	if err != nil {
 		s.lgr.Error("ошибка удаления auth", zap.Error(err))
 		return nil, grpcErr(err)
@@ -165,12 +224,15 @@ func (s *StorageServer) DeleteAuthInfo(ctx context.Context, req *pb.DeleteInfoRe
 }
 
 func (s *StorageServer) CreateTextInfo(ctx context.Context, req *pb.TextInfo) (*pb.CreateInfoResponse, error) {
-	userID, ok := ctx.Value(auth.UserIDKey).(string)
-	if !ok || userID == "" {
-		return nil, status.Error(codes.Unauthenticated, "пользователь не авторизован")
+	userID, err := userIDFromCtx(ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	metaJSON, _ := json.Marshal(req.GetMeta())
+	metaJSON, err := marshalMeta(req.GetMeta())
+	if err != nil {
+		return nil, err
+	}
 
 	text := &model.TextData{
 		ID:     NewUUID(),
@@ -179,7 +241,7 @@ func (s *StorageServer) CreateTextInfo(ctx context.Context, req *pb.TextInfo) (*
 		Meta:   metaJSON,
 	}
 
-	version, err := s.repo.CreateTextData(ctx, text)
+	version, err := s.repo.Texts().Create(ctx, text)
 	if err != nil {
 		s.lgr.Error("ошибка создания text информации", zap.Error(err))
 		return nil, grpcErr(err)
@@ -192,22 +254,21 @@ func (s *StorageServer) CreateTextInfo(ctx context.Context, req *pb.TextInfo) (*
 }
 
 func (s *StorageServer) GetTextInfo(ctx context.Context, req *pb.GetInfoRequest) (*pb.StoredTextInfo, error) {
-	userID, ok := ctx.Value(auth.UserIDKey).(string)
-	if !ok || userID == "" {
-		return nil, status.Error(codes.Unauthenticated, "пользователь не авторизован")
+	userID, err := userIDFromCtx(ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	text, err := s.repo.GetTextData(ctx, userID, req.GetId())
+	text, err := s.repo.Texts().Get(ctx, userID, req.GetId())
 	if err != nil {
 		return nil, grpcErr(err)
 	}
 
-	var meta map[string]string
-	err = json.Unmarshal(text.Meta, &meta)
+	meta, err := unmarshalMeta(text.Meta)
 	if err != nil {
-		s.lgr.Error("ошибка unmarshal meta", zap.Error(err))
-		return nil, fmt.Errorf("ошибка unmarshal meta")
+		return nil, err
 	}
+
 	data := &pb.TextInfo{
 		Text: text.Data,
 		Meta: meta,
@@ -221,15 +282,14 @@ func (s *StorageServer) GetTextInfo(ctx context.Context, req *pb.GetInfoRequest)
 }
 
 func (s *StorageServer) UpdateTextInfo(ctx context.Context, req *pb.UpdateTextInfoRequest) (*pb.UpdateInfoResponse, error) {
-	userID, ok := ctx.Value(auth.UserIDKey).(string)
-	if !ok || userID == "" {
-		return nil, status.Error(codes.Unauthenticated, "пользователь не авторизован")
+	userID, err := userIDFromCtx(ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	metaJSON, err := json.Marshal(req.GetData().GetMeta())
+	metaJSON, err := marshalMeta(req.GetData().GetMeta())
 	if err != nil {
-		s.lgr.Error("ошибка marshal meta", zap.Error(err))
-		return nil, fmt.Errorf("ошибка marshal meta")
+		return nil, err
 	}
 
 	text := &model.TextData{
@@ -239,7 +299,7 @@ func (s *StorageServer) UpdateTextInfo(ctx context.Context, req *pb.UpdateTextIn
 		Meta:   metaJSON,
 	}
 
-	newVersion, err := s.repo.UpdateTextData(ctx, text, req.GetVersion())
+	newVersion, err := s.repo.Texts().Update(ctx, text, req.GetVersion())
 	if err != nil {
 		s.lgr.Error("ошибка обновления text информации", zap.Error(err))
 		return nil, grpcErr(err)
@@ -251,12 +311,12 @@ func (s *StorageServer) UpdateTextInfo(ctx context.Context, req *pb.UpdateTextIn
 }
 
 func (s *StorageServer) DeleteTextInfo(ctx context.Context, req *pb.DeleteInfoRequest) (*pb.DeleteInfoResponse, error) {
-	userID, ok := ctx.Value(auth.UserIDKey).(string)
-	if !ok || userID == "" {
-		return nil, status.Error(codes.Unauthenticated, "пользователь не авторизован")
+	userID, err := userIDFromCtx(ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	err := s.repo.DeleteTextData(ctx, userID, req.GetId(), req.GetVersion())
+	err = s.repo.Texts().Delete(ctx, userID, req.GetId(), req.GetVersion())
 	if err != nil {
 		s.lgr.Error("ошибка удаления text информации", zap.Error(err))
 		return nil, grpcErr(err)
@@ -266,26 +326,25 @@ func (s *StorageServer) DeleteTextInfo(ctx context.Context, req *pb.DeleteInfoRe
 }
 
 func (s *StorageServer) CreateBankCardDetails(ctx context.Context, req *pb.BankCardDetails) (*pb.CreateInfoResponse, error) {
-	userID, ok := ctx.Value(auth.UserIDKey).(string)
-	if !ok || userID == "" {
-		return nil, status.Error(codes.Unauthenticated, "пользователь не авторизован")
+	userID, err := userIDFromCtx(ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	metaJSON, _ := json.Marshal(req.GetMeta())
+	metaJSON, err := marshalMeta(req.GetMeta())
+	if err != nil {
+		return nil, err
+	}
+
 	number, err := crypto.Encrypt([]byte(req.GetNumber()), s.key)
 	if err != nil {
 		s.lgr.Error("ошибка шифрования номера карты", zap.Error(err))
 		return nil, fmt.Errorf("ошибка шифрования номера карты %w", err)
 	}
 
-	last4 := ""
-	if len(req.GetNumber()) >= 4 {
-		last4 = req.GetNumber()[len(req.GetNumber())-4:]
-	}
-	last4n, err := strconv.ParseUint(last4, 10, 32)
+	last4n, err := parseLast4(req.Number)
 	if err != nil {
-		s.lgr.Error("ошибка формата номера", zap.Error(err))
-		return nil, grpcErr(err)
+		return nil, err
 	}
 
 	card := &model.BankCardData{
@@ -299,7 +358,7 @@ func (s *StorageServer) CreateBankCardDetails(ctx context.Context, req *pb.BankC
 		Meta:            metaJSON,
 	}
 
-	version, err := s.repo.CreateBankCardData(ctx, card)
+	version, err := s.repo.Cards().Create(ctx, card)
 	if err != nil {
 		s.lgr.Error("ошибка добавления карты", zap.Error(err))
 		return nil, grpcErr(err)
@@ -312,12 +371,12 @@ func (s *StorageServer) CreateBankCardDetails(ctx context.Context, req *pb.BankC
 }
 
 func (s *StorageServer) GetBankCardDetails(ctx context.Context, req *pb.GetInfoRequest) (*pb.StoredBankCardDetails, error) {
-	userID, ok := ctx.Value(auth.UserIDKey).(string)
-	if !ok || userID == "" {
-		return nil, status.Error(codes.Unauthenticated, "пользователь не авторизован")
+	userID, err := userIDFromCtx(ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	card, err := s.repo.GetBankCardData(ctx, userID, req.GetId())
+	card, err := s.repo.Cards().Get(ctx, userID, req.GetId())
 	if err != nil {
 		s.lgr.Error("ошибка получения номера карты", zap.Error(err))
 		return nil, grpcErr(err)
@@ -328,11 +387,10 @@ func (s *StorageServer) GetBankCardDetails(ctx context.Context, req *pb.GetInfoR
 		s.lgr.Error("ошибка дешифрования номера карты", zap.Error(err))
 		return nil, fmt.Errorf("ошибка дешифрования номера карты")
 	}
-	var meta map[string]string
-	err = json.Unmarshal(card.Meta, &meta)
+
+	meta, err := unmarshalMeta(card.Meta)
 	if err != nil {
-		s.lgr.Error("ошибка unmarshal meta", zap.Error(err))
-		return nil, fmt.Errorf("ошибка unmarshal meta")
+		return nil, err
 	}
 	data := &pb.BankCardDetails{
 		Number:   string(number),
@@ -350,30 +408,25 @@ func (s *StorageServer) GetBankCardDetails(ctx context.Context, req *pb.GetInfoR
 }
 
 func (s *StorageServer) UpdateBankCardDetails(ctx context.Context, req *pb.UpdateBankCardDetailsRequest) (*pb.UpdateInfoResponse, error) {
-	userID, ok := ctx.Value(auth.UserIDKey).(string)
-	if !ok || userID == "" {
-		return nil, status.Error(codes.Unauthenticated, "пользователь не авторизован")
+	userID, err := userIDFromCtx(ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	metaJSON, err := json.Marshal(req.GetData().GetMeta())
+	metaJSON, err := marshalMeta(req.Data.GetMeta())
 	if err != nil {
-		s.lgr.Error("ошибка marshal meta", zap.Error(err))
-		return nil, fmt.Errorf("ошибка marshal meta")
+		return nil, err
 	}
-	number, err := crypto.Encrypt([]byte(req.GetData().GetNumber()), s.key)
+
+	number, err := crypto.Encrypt([]byte(req.Data.GetNumber()), s.key)
 	if err != nil {
-		s.lgr.Error("ошибка шифрования номера карты ", zap.Error(err))
+		s.lgr.Error("ошибка шифрования номера карты", zap.Error(err))
 		return nil, fmt.Errorf("ошибка шифрования номера карты %w", err)
 	}
 
-	last4 := ""
-	if len(req.GetData().GetNumber()) >= 4 {
-		last4 = req.GetData().GetNumber()[len(req.GetData().GetNumber())-4:]
-	}
-	last4n, err := strconv.ParseUint(last4, 10, 32)
+	last4n, err := parseLast4(req.Data.Number)
 	if err != nil {
-		s.lgr.Error("ошибка формата номера", zap.Error(err))
-		return nil, grpcErr(err)
+		return nil, err
 	}
 
 	card := &model.BankCardData{
@@ -387,7 +440,7 @@ func (s *StorageServer) UpdateBankCardDetails(ctx context.Context, req *pb.Updat
 		Meta:            metaJSON,
 	}
 
-	newVersion, err := s.repo.UpdateBankCardData(ctx, card, req.GetVersion())
+	newVersion, err := s.repo.Cards().Update(ctx, card, req.GetVersion())
 	if err != nil {
 		s.lgr.Error("ошибка обновления карты", zap.Error(err))
 		return nil, grpcErr(err)
@@ -399,12 +452,12 @@ func (s *StorageServer) UpdateBankCardDetails(ctx context.Context, req *pb.Updat
 }
 
 func (s *StorageServer) DeleteBankCardDetails(ctx context.Context, req *pb.DeleteInfoRequest) (*pb.DeleteInfoResponse, error) {
-	userID, ok := ctx.Value(auth.UserIDKey).(string)
-	if !ok || userID == "" {
-		return nil, status.Error(codes.Unauthenticated, "пользователь не авторизован")
+	userID, err := userIDFromCtx(ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	err := s.repo.DeleteBankCardData(ctx, userID, req.GetId(), req.GetVersion())
+	err = s.repo.Cards().Delete(ctx, userID, req.GetId(), req.GetVersion())
 	if err != nil {
 		s.lgr.Error("ошибка удаления карты", zap.Error(err))
 		return nil, grpcErr(err)
@@ -414,16 +467,16 @@ func (s *StorageServer) DeleteBankCardDetails(ctx context.Context, req *pb.Delet
 }
 
 func (s *StorageServer) StartUpload(ctx context.Context, req *pb.StartUploadRequest) (*pb.StartUploadResponse, error) {
-	userID, ok := ctx.Value(auth.UserIDKey).(string)
-	if !ok || userID == "" {
-		return nil, status.Error(codes.Unauthenticated, "пользователь не авторизован")
+	userID, err := userIDFromCtx(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	if req.GetFilename() == "" {
-		return nil, status.Error(codes.InvalidArgument, "filename is required")
+		return nil, status.Error(codes.InvalidArgument, "не указано имя файла")
 	}
 
-	uploadID, fileID, err := s.repo.StartUpload(
+	uploadID, fileID, err := s.repo.Files().StartUpload(
 		ctx,
 		userID,
 		req.GetFileId(),
@@ -443,9 +496,9 @@ func (s *StorageServer) StartUpload(ctx context.Context, req *pb.StartUploadRequ
 }
 
 func (s *StorageServer) UploadChunks(stream pb.StorageService_UploadChunksServer) error {
-	userID, ok := stream.Context().Value(auth.UserIDKey).(string)
-	if !ok || userID == "" {
-		return status.Error(codes.Unauthenticated, "пользователь не авторизован")
+	userID, err := userIDFromCtx(stream.Context())
+	if err != nil {
+		return err
 	}
 
 	var uploadID string
@@ -462,23 +515,23 @@ func (s *StorageServer) UploadChunks(stream pb.StorageService_UploadChunksServer
 			})
 		}
 		if err != nil {
-			return status.Error(codes.Internal, "failed to receive stream message")
+			return status.Error(codes.Internal, "ошибка отправки сообщения")
 		}
 
 		if req.GetUploadId() == "" {
-			return status.Error(codes.InvalidArgument, "upload_id is required")
+			return status.Error(codes.InvalidArgument, "нужен upload_id")
 		}
 		if uploadID == "" {
 			uploadID = req.GetUploadId()
 		}
 		if req.GetUploadId() != uploadID {
-			return status.Error(codes.InvalidArgument, "all chunks must belong to one upload_id")
+			return status.Error(codes.InvalidArgument, "все куски должны принадлежать одному upload_id")
 		}
 		if len(req.GetData()) == 0 {
-			return status.Error(codes.InvalidArgument, "chunk data is empty")
+			return status.Error(codes.InvalidArgument, "данные пустые")
 		}
 
-		if err := s.repo.PutUploadChunk(
+		if err := s.repo.Files().PutUploadChunk(
 			stream.Context(),
 			userID,
 			req.GetUploadId(),
@@ -494,16 +547,16 @@ func (s *StorageServer) UploadChunks(stream pb.StorageService_UploadChunksServer
 }
 
 func (s *StorageServer) CommitUpload(ctx context.Context, req *pb.CommitUploadRequest) (*pb.CommitUploadResponse, error) {
-	userID, ok := ctx.Value(auth.UserIDKey).(string)
-	if !ok || userID == "" {
-		return nil, status.Error(codes.Unauthenticated, "пользователь не авторизован")
+	userID, err := userIDFromCtx(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	if req.GetUploadId() == "" {
-		return nil, status.Error(codes.InvalidArgument, "upload_id is required")
+		return nil, status.Error(codes.InvalidArgument, "нужен upload_id")
 	}
 
-	fileID, newVersion, err := s.repo.CommitUpload(
+	fileID, newVersion, err := s.repo.Files().CommitUpload(
 		ctx,
 		userID,
 		req.GetUploadId(),
@@ -522,18 +575,20 @@ func (s *StorageServer) CommitUpload(ctx context.Context, req *pb.CommitUploadRe
 }
 
 func (s *StorageServer) GetFileMeta(ctx context.Context, req *pb.GetFileMetaRequest) (*pb.GetFileMetaResponse, error) {
-	userID, ok := ctx.Value(auth.UserIDKey).(string)
-	if !ok || userID == "" {
-		return nil, status.Error(codes.Unauthenticated, "пользователь не авторизован")
+	userID, err := userIDFromCtx(ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	meta, err := s.repo.GetFileMeta(ctx, userID, req.GetFileId())
+	meta, err := s.repo.Files().GetFileMeta(ctx, userID, req.GetFileId())
 	if err != nil {
 		return nil, grpcErr(err)
 	}
 
-	outMeta := map[string]string{}
-	_ = json.Unmarshal(meta.MetaJSON, &outMeta)
+	outMeta, err := unmarshalMeta(meta.MetaJSON)
+	if err != nil {
+		return nil, err
+	}
 
 	return &pb.GetFileMetaResponse{
 		File: &pb.FileMeta{
@@ -548,37 +603,34 @@ func (s *StorageServer) GetFileMeta(ctx context.Context, req *pb.GetFileMetaRequ
 }
 
 func (s *StorageServer) DownloadFile(req *pb.DownloadFileRequest, stream pb.StorageService_DownloadFileServer) error {
-	userID, ok := stream.Context().Value(auth.UserIDKey).(string)
-	if !ok || userID == "" {
-		return status.Error(codes.Unauthenticated, "пользователь не авторизован")
+	userID, err := userIDFromCtx(stream.Context())
+	if err != nil {
+		return err
 	}
 
-	err := s.repo.StreamFileChunks(
-		stream.Context(),
-		userID,
-		req.GetFileId(),
-		req.GetVersion(),
-		func(chunkNo int64, data []byte) error {
-			return stream.Send(&pb.DownloadFileChunk{
-				ChunkNo: chunkNo,
-				Data:    data,
-			})
-		},
-	)
-	if err != nil {
-		return grpcErr(err)
+	for chunk, err := range s.repo.Files().Chunks(stream.Context(), userID, req.GetFileId(), req.GetVersion()) {
+		if err != nil {
+			return grpcErr(err)
+		}
+
+		if err := stream.Send(&pb.DownloadFileChunk{
+			ChunkNo: chunk.ChunkNo,
+			Data:    chunk.Data,
+		}); err != nil {
+			return status.Errorf(codes.Internal, "отправка куска: %v", err)
+		}
 	}
 
 	return nil
 }
 
 func (s *StorageServer) DeleteFile(ctx context.Context, req *pb.DeleteFileRequest) (*pb.DeleteInfoResponse, error) {
-	userID, ok := ctx.Value(auth.UserIDKey).(string)
-	if !ok || userID == "" {
-		return nil, status.Error(codes.Unauthenticated, "пользователь не авторизован")
+	userID, err := userIDFromCtx(ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	err := s.repo.DeleteFile(ctx, userID, req.GetFileId(), req.GetVersion())
+	err = s.repo.Files().DeleteFile(ctx, userID, req.GetFileId(), req.GetVersion())
 	if err != nil {
 		return nil, grpcErr(err)
 	}

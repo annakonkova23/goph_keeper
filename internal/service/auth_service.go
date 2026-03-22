@@ -42,7 +42,7 @@ func (s *AuthServer) Register(ctx context.Context, req *pb.RegisterRequest) (*pb
 
 	userID := NewUUID()
 
-	err = s.repo.CreateUser(ctx, userID, req.GetLogin(), string(hash))
+	err = s.repo.Users().CreateUser(ctx, userID, req.GetLogin(), string(hash))
 	if err != nil {
 		if errors.Is(err, repository.ErrorConflict) {
 			return nil, status.Error(codes.AlreadyExists, "пользователь уже существует")
@@ -59,7 +59,7 @@ func (s *AuthServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Login
 		return nil, status.Error(codes.InvalidArgument, "email and password are required")
 	}
 
-	user, passwordHash, err := s.repo.GetUserByLogin(ctx, req.GetLogin())
+	user, passwordHash, err := s.repo.Users().GetUserByLogin(ctx, req.GetLogin())
 	if err != nil {
 		if errors.Is(err, repository.ErrorUserNotFound) {
 			return nil, status.Error(codes.Unauthenticated, "invalid email or password")
