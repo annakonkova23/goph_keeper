@@ -25,20 +25,13 @@ type configClientPointer struct {
 	ConfigPath *string
 }
 
-func defaultClientConfig() *ConfigClient {
-	return &ConfigClient{
-		GrpcServer: defaultGrpc,
-		Host:       defaultHost,
-	}
-}
-
 // GetConfig возвращает конфигурацию приложения.
 // Приоритет: ФЛАГИ > ENV > CONFIG(JSON) > DEFAULTS.
 func GetConfigClient() *ConfigClient {
 
 	cfgFlag := readClientFlag()
 
-	cfg := defaultClientConfig()
+	cfg := &ConfigClient{}
 
 	configPath := ""
 	flag.CommandLine.Visit(func(f *flag.Flag) {

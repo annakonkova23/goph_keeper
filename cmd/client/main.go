@@ -19,6 +19,21 @@ var buildVersion string
 var buildDate string
 var buildCommit string
 
+// @title           GophKeeper API
+// @version         1.0
+// @description     API для безопасного хранения паролей, текстов, карт и файлов.
+// @termsOfService  http://swagger.io/terms/
+
+// @license.name  MIT
+// @license.url   https://opensource.org/licenses/MIT
+
+// @host      localhost:8080
+// @BasePath  /api
+
+// @securityDefinitions.apikey  ApiKeyAuth
+// @in                          header
+// @name                        Authorization
+// @description                 Bearer Token: "Bearer {token}"
 func main() {
 
 	config.PrintBuildInfo(buildVersion, buildDate, buildCommit)

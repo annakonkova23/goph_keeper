@@ -66,7 +66,8 @@ func main() {
 	}
 	if cfg.GrpcServer != "" {
 		go func() {
-			storageServer := service.NewStorageServer(logger, repo, key)
+			storageServer := service.NewStorageServer(logger, repo, key, cfg.DeleteFileTimeout)
+			storageServer.StartOfServiceProcesses(ctx)
 			authServer := service.NewAuthServer(logger, repo, jwtManager)
 			errCh <- startGrpcServer(logger, cfg.GrpcServer, authServer, storageServer, auth.UnaryAuthInterceptor(jwtManager), auth.StreamAuthInterceptor(jwtManager))
 		}()

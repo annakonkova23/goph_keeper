@@ -37,17 +37,6 @@ type configServerPointer struct {
 	ConfigPath        *string
 }
 
-func defaultConfig() *ConfigServer {
-	return &ConfigServer{
-		DSN:               "postgres://user_main:user_main@localhost:5432/gophkeeperdb?sslmode=disable",
-		GrpcServer:        defaultGrpc,
-		Key:               "e79MwJBpok2XsNHkMFn3W56+lW3iGMi9uWzbhJgNPRE=",
-		KeyAuth:           "e79MwJBpok2XsNHkMFn3W56+lW3iGMi9uWzbhJgNPRE=",
-		DeleteFileTimeout: 1,
-		TokenTTL:          2,
-	}
-}
-
 func lookupEnvString(key string) (string, bool) {
 	v := os.Getenv(key)
 	if v == "" {
@@ -86,7 +75,7 @@ func GetConfigServer() *ConfigServer {
 
 	cfgFlag := readServerFlag()
 
-	cfg := defaultConfig()
+	cfg := &ConfigServer{}
 
 	configPath := ""
 	flag.CommandLine.Visit(func(f *flag.Flag) {

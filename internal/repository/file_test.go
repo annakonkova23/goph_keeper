@@ -114,6 +114,8 @@ func TestFileStore_StartUpload_FileNotFound(t *testing.T) {
 	fileID := "unknown-1"
 	newID := func() string { return "upload-3" }
 
+	mock.ExpectBegin()
+
 	mock.ExpectQuery(regexp.QuoteMeta(checkFiles)).
 		WithArgs(fileID, userID).
 		WillReturnError(sql.ErrNoRows)
@@ -238,6 +240,9 @@ func TestFileStore_CommitUpload_VersionConflict(t *testing.T) {
 
 	rowsUpload := sqlmock.NewRows([]string{"file_id", "expected_version", "filename", "meta"}).
 		AddRow(fileID, expectedVersion, "test.txt", []byte(`{"cat":"work"}`))
+
+	mock.ExpectBegin()
+
 	mock.ExpectQuery(regexp.QuoteMeta(selectUpload)).
 		WithArgs(uploadID, userID).
 		WillReturnRows(rowsUpload)

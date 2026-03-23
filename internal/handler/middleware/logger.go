@@ -1,3 +1,4 @@
+// package middleware - для middleware http handler
 package middleware
 
 import (
@@ -32,6 +33,7 @@ func (l *responseLogger) Write(b []byte) (int, error) {
 	return size, err
 }
 
+// LoggingMiddleware - логирование запроса и ответа.
 func LoggingMiddleware(log *zap.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

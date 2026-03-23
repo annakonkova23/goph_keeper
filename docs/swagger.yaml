@@ -1,0 +1,868 @@
+basePath: /api
+definitions:
+  dto.CreateResponse:
+    properties:
+      id:
+        example: rec-123
+        type: string
+      version:
+        example: 1
+        type: integer
+    type: object
+  dto.ErrorResponse:
+    properties:
+      error:
+        example: пользователь не найден
+        type: string
+    type: object
+  dto.LoginRequest:
+    properties:
+      login:
+        example: alice@example.com
+        type: string
+      password:
+        example: mysecretpass
+        type: string
+    type: object
+  dto.LoginResponse:
+    properties:
+      access_token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+    type: object
+  dto.RegisterRequest:
+    properties:
+      login:
+        example: alice@example.com
+        type: string
+      password:
+        example: mysecretpass
+        type: string
+    type: object
+  dto.UpdateResponse:
+    properties:
+      new_version:
+        example: 2
+        type: integer
+    type: object
+  github_com_konkovaanna23_gophkeeper_pkg_keeperservice.AuthInfo:
+    properties:
+      login:
+        description: login — логин (например, email).
+        type: string
+      meta:
+        additionalProperties:
+          type: string
+        description: meta — произвольные метаданные (например, "название", "источник").
+        type: object
+      password:
+        description: password — пароль (зашифрован на клиенте или сервере).
+        type: string
+    type: object
+  github_com_konkovaanna23_gophkeeper_pkg_keeperservice.BankCardDetails:
+    properties:
+      expMonth:
+        description: expMonth — месяц истечения срока действия (1–12).
+        type: integer
+      expYear:
+        description: expYear — год истечения (например, 2028).
+        type: integer
+      meta:
+        additionalProperties:
+          type: string
+        description: meta — метаданные (например, "банк", "тип").
+        type: object
+      number:
+        description: number — номер карты (зашифрован).
+        type: string
+      owner:
+        description: owner — имя держателя карты.
+        type: string
+    type: object
+  github_com_konkovaanna23_gophkeeper_pkg_keeperservice.CommitUploadResponse:
+    properties:
+      file_id:
+        description: file_id — идентификатор файла.
+        type: string
+      new_version:
+        description: new_version — новая версия файла.
+        type: integer
+    type: object
+  github_com_konkovaanna23_gophkeeper_pkg_keeperservice.DeleteInfoResponse:
+    type: object
+  github_com_konkovaanna23_gophkeeper_pkg_keeperservice.StoredAuthInfo:
+    properties:
+      data:
+        allOf:
+        - $ref: '#/definitions/github_com_konkovaanna23_gophkeeper_pkg_keeperservice.AuthInfo'
+        description: data — содержимое записи.
+      id:
+        description: id — уникальный идентификатор записи.
+        type: string
+      updated_at:
+        allOf:
+        - $ref: '#/definitions/timestamppb.Timestamp'
+        description: updated_at — время последнего обновления.
+      version:
+        description: version — номер версии (для контроля конфликтов при обновлении).
+        type: integer
+    type: object
+  github_com_konkovaanna23_gophkeeper_pkg_keeperservice.StoredTextInfo:
+    properties:
+      data:
+        $ref: '#/definitions/github_com_konkovaanna23_gophkeeper_pkg_keeperservice.TextInfo'
+      id:
+        type: string
+      updated_at:
+        $ref: '#/definitions/timestamppb.Timestamp'
+      version:
+        type: integer
+    type: object
+  github_com_konkovaanna23_gophkeeper_pkg_keeperservice.TextInfo:
+    properties:
+      meta:
+        additionalProperties:
+          type: string
+        description: meta — дополнительные метаданные.
+        type: object
+      text:
+        description: text — содержимое текста.
+        type: string
+    type: object
+  github_com_konkovaanna23_gophkeeper_pkg_keeperservice.UpdateAuthInfoRequest:
+    properties:
+      data:
+        $ref: '#/definitions/github_com_konkovaanna23_gophkeeper_pkg_keeperservice.AuthInfo'
+      id:
+        type: string
+      version:
+        description: version — текущая версия записи (защита от конфликтов).
+        type: integer
+    type: object
+  github_com_konkovaanna23_gophkeeper_pkg_keeperservice.UpdateBankCardDetailsRequest:
+    properties:
+      data:
+        $ref: '#/definitions/github_com_konkovaanna23_gophkeeper_pkg_keeperservice.BankCardDetails'
+      id:
+        type: string
+      version:
+        type: integer
+    type: object
+  github_com_konkovaanna23_gophkeeper_pkg_keeperservice.UpdateTextInfoRequest:
+    properties:
+      data:
+        $ref: '#/definitions/github_com_konkovaanna23_gophkeeper_pkg_keeperservice.TextInfo'
+      id:
+        type: string
+      version:
+        type: integer
+    type: object
+  timestamppb.Timestamp:
+    properties:
+      nanos:
+        description: |-
+          Non-negative fractions of a second at nanosecond resolution. Negative
+          second values with fractions must still have non-negative nanos values
+          that count forward in time. Must be from 0 to 999,999,999
+          inclusive.
+        type: integer
+      seconds:
+        description: |-
+          Represents seconds of UTC time since Unix epoch
+          1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to
+          9999-12-31T23:59:59Z inclusive.
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API для безопасного хранения паролей, текстов, карт и файлов.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: GophKeeper API
+  version: "1.0"
+paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Возвращает JWT-токен при успешном входе
+      parameters:
+      - description: Логин и пароль
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.LoginResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Аутентификация пользователя
+      tags:
+      - auth
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Создаёт нового пользователя в системе
+      parameters:
+      - description: Данные регистрации
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.CreateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Регистрация нового пользователя
+      tags:
+      - auth
+  /storage/auth-info:
+    delete:
+      description: Удаляет запись по ID и версии
+      parameters:
+      - description: ID записи
+        in: query
+        name: id
+        required: true
+        type: string
+      - description: Текущая версия
+        in: query
+        name: version
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_konkovaanna23_gophkeeper_pkg_keeperservice.DeleteInfoResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Удалить учётные данные
+      tags:
+      - credentials
+    get:
+      description: Возвращает сохранённые логин/пароль по ID
+      parameters:
+      - description: ID записи
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_konkovaanna23_gophkeeper_pkg_keeperservice.StoredAuthInfo'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Получить учётные данные
+      tags:
+      - credentials
+    post:
+      consumes:
+      - application/json
+      description: Сохраняет логин и пароль
+      parameters:
+      - description: 'Данные: login, password, meta'
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_konkovaanna23_gophkeeper_pkg_keeperservice.AuthInfo'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.CreateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Сохранить учётные данные
+      tags:
+      - credentials
+    put:
+      consumes:
+      - application/json
+      description: Обновляет запись с проверкой версии
+      parameters:
+      - description: ID, data, version
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_konkovaanna23_gophkeeper_pkg_keeperservice.UpdateAuthInfoRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UpdateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: Конфликт версий
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Обновить учётные данные
+      tags:
+      - credentials
+  /storage/bank-card:
+    delete:
+      description: Удаляет запись по ID и версии
+      parameters:
+      - description: ID записи
+        in: query
+        name: id
+        required: true
+        type: string
+      - description: Версия
+        in: query
+        name: version
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_konkovaanna23_gophkeeper_pkg_keeperservice.DeleteInfoResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Удалить данные банковской карты
+      tags:
+      - bank-cards
+    get:
+      description: Возвращает номер, срок, имя держателя
+      parameters:
+      - description: ID записи
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_konkovaanna23_gophkeeper_pkg_keeperservice.StoredTextInfo'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Получить данные банковской карты
+      tags:
+      - bank-cards
+    post:
+      consumes:
+      - application/json
+      description: Сохраняет номер, срок, имя держателя
+      parameters:
+      - description: Данные карты
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_konkovaanna23_gophkeeper_pkg_keeperservice.BankCardDetails'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.CreateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Сохранить данные банковской карты
+      tags:
+      - bank-cards
+    put:
+      consumes:
+      - application/json
+      description: Обновляет номер, срок, имя держателя
+      parameters:
+      - description: ID, data, version
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_konkovaanna23_gophkeeper_pkg_keeperservice.UpdateBankCardDetailsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UpdateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Обновить данные банковской карты
+      tags:
+      - bank-cards
+  /storage/file:
+    delete:
+      description: Удаляет файл по ID и версии
+      parameters:
+      - description: ID файла
+        in: query
+        name: id
+        required: true
+        type: string
+      - description: Текущая версия
+        in: query
+        name: version
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_konkovaanna23_gophkeeper_pkg_keeperservice.DeleteInfoResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Удалить файл
+      tags:
+      - files
+    get:
+      description: Возвращает файл по ID
+      parameters:
+      - description: ID файла
+        in: query
+        name: id
+        required: true
+        type: string
+      - default: 0
+        description: Версия (0 = последняя)
+        in: query
+        name: version
+        type: integer
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: Файл для скачивания
+          schema:
+            type: file
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Скачать файл
+      tags:
+      - files
+    post:
+      consumes:
+      - multipart/form-data
+      description: Начинает загрузку файла, отправляет чанки, финализирует
+      parameters:
+      - description: Файл
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: Метаданные (JSON)
+        format: json
+        in: formData
+        name: meta
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_konkovaanna23_gophkeeper_pkg_keeperservice.CommitUploadResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Загрузить файл
+      tags:
+      - files
+    put:
+      consumes:
+      - multipart/form-data
+      description: Обновляет существующий файл с контролем версий
+      parameters:
+      - description: Новый файл
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: ID файла
+        in: query
+        name: id
+        required: true
+        type: string
+      - description: Текущая версия
+        in: query
+        name: version
+        required: true
+        type: integer
+      - description: Метаданные
+        format: json
+        in: formData
+        name: meta
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_konkovaanna23_gophkeeper_pkg_keeperservice.CommitUploadResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Обновить файл
+      tags:
+      - files
+  /storage/text-info:
+    delete:
+      description: Удаляет запись по ID и версии
+      parameters:
+      - description: ID записи
+        in: query
+        name: id
+        required: true
+        type: string
+      - description: Версия
+        in: query
+        name: version
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_konkovaanna23_gophkeeper_pkg_keeperservice.DeleteInfoResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Удалить текстовую заметку
+      tags:
+      - text
+    get:
+      description: Возвращает текст по ID
+      parameters:
+      - description: ID записи
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_konkovaanna23_gophkeeper_pkg_keeperservice.StoredTextInfo'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Получить текстовую заметку
+      tags:
+      - text
+    post:
+      consumes:
+      - application/json
+      description: Сохраняет произвольный текст
+      parameters:
+      - description: Текст и метаданные
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_konkovaanna23_gophkeeper_pkg_keeperservice.TextInfo'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.CreateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Сохранить текстовую заметку
+      tags:
+      - text
+    put:
+      consumes:
+      - application/json
+      description: Обновляет текст с контролем версий
+      parameters:
+      - description: ID, data, version
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_konkovaanna23_gophkeeper_pkg_keeperservice.UpdateTextInfoRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UpdateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Обновить текстовую заметку
+      tags:
+      - text
+securityDefinitions:
+  ApiKeyAuth:
+    description: 'Bearer Token: "Bearer {token}"'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

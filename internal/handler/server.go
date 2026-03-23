@@ -4,12 +4,13 @@ package handler
 import (
 	"context"
 	"net/http"
-	"time"
 
 	"github.com/go-chi/chi/v5"
+	_ "github.com/konkovaanna23/gophkeeper/docs"
 	"github.com/konkovaanna23/gophkeeper/internal/client"
 	"github.com/konkovaanna23/gophkeeper/internal/handler/middleware"
 	"github.com/sirupsen/logrus"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"go.uber.org/zap"
 )
 
@@ -19,7 +20,7 @@ const cookieName = "authorization"
 type Server struct {
 	url           string
 	mux           *chi.Mux
-	authClient    *client.AuthServiceClient
+	authClient    client.AuthClient
 	storageClient *client.StorageServiceClient
 	srv           *http.Server
 	lgr           *zap.Logger
@@ -52,7 +53,7 @@ func NewServer(logger *zap.Logger, url string, grpServer string) (*Server, error
 
 	s.mux.Post("/api/register", s.Register)
 	s.mux.Group(func(pr chi.Router) {
-		pr.Use(middleware.WithAuthCookie(cookieName, true, time.Duration(1)*time.Hour))
+		pr.Use(middleware.WithAuthCookie(cookieName))
 		pr.Post("/api/login", s.Login)
 	})
 
@@ -80,6 +81,10 @@ func NewServer(logger *zap.Logger, url string, grpServer string) (*Server, error
 
 	})
 
+	s.mux.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("http://localhost:8080/swagger/doc.json"), // URL до файла спецификации
+	))
+
 	s.srv = &http.Server{
 		Addr:    url,
 		Handler: mux,
@@ -99,8 +104,4 @@ func (s *Server) Start(ctx context.Context) error {
 	}()
 
 	return s.srv.ListenAndServe()
-}
-
-func (s *Server) GetHandler() http.Handler {
-	return s.mux
 }

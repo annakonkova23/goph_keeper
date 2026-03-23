@@ -1,3 +1,4 @@
+// package repository
 package repository
 
 import (
@@ -10,16 +11,13 @@ import (
 	"go.uber.org/zap"
 )
 
+// UserStore Репозиторий для работы с аутентификационными данными.
 type UserStore interface {
 	CreateUser(ctx context.Context, id, login, password string) error
 	GetUserByLogin(ctx context.Context, loginSrc string) (string, string, error)
 }
 
-type FileChunk struct {
-	ChunkNo int64
-	Data    []byte
-}
-
+// FileStore Репозиторий для работы с файлами.
 type FileStore interface {
 	StartUpload(ctx context.Context, userID string, fileID string, expectedVersion int64, filename string, meta map[string]string, newID func() string) (string, string, error)
 	PutUploadChunk(ctx context.Context, userID string, uploadID string, chunkNo int64, data []byte) error
@@ -27,8 +25,10 @@ type FileStore interface {
 	GetFileMeta(ctx context.Context, userID string, fileID string) (*model.FileMeta, error)
 	Chunks(ctx context.Context, userID, fileID string, version int64) iter.Seq2[*FileChunk, error]
 	DeleteFile(ctx context.Context, userID string, fileID string, expectedVersion int64) error
+	CleanupExpiredUploads(ctx context.Context) error
 }
 
+// StoreRepository хранилище репозиториев.
 type StoreRepository interface {
 	Users() UserStore
 	Auths() CRUDRepository[model.AuthData]
@@ -37,6 +37,7 @@ type StoreRepository interface {
 	Files() FileStore
 }
 
+// DBStore хранилище репозиториев.
 type DBStore struct {
 	database        *sqlx.DB
 	timeoutInterval time.Duration

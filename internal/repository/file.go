@@ -15,6 +15,12 @@ type fileStore struct {
 	database *sqlx.DB
 }
 
+// FileChunk
+type FileChunk struct {
+	ChunkNo int64
+	Data    []byte
+}
+
 func newFilesRepo(db *sqlx.DB) FileStore {
 	return &fileStore{database: db}
 }
@@ -134,6 +140,15 @@ var updateDeleteFiles string = `
 		  AND deleted_at IS NULL
 	`
 
+// StartUpload - начало загрузки файла, добавлет строки в files и uploads.
+// Параметры:
+//   - ctx: контекст.
+//   - userID: пользователь.
+//   - fileID: ID файла на сервере.
+//   - expectedVersion: версия файла.
+//   - filename - имя файла.
+//   - meta - информация о файле
+//   - newID - функция для формирования ID
 func (ds *fileStore) StartUpload(ctx context.Context, userID string, fileID string, expectedVersion int64, filename string, meta map[string]string, newID func() string) (string, string, error) {
 	var uploadID, outFileID string
 	metaJSON, err := json.Marshal(meta)
@@ -181,6 +196,13 @@ func (ds *fileStore) StartUpload(ctx context.Context, userID string, fileID stri
 	return uploadID, outFileID, nil
 }
 
+// PutUploadChunk - вставка кусков в upload_chunks
+// Параметры:
+//   - ctx: контекст.
+//   - userID: пользователь.
+//   - uploadID: ID загрузки.
+//   - chunkNo - номер куска.
+//   - data - данные.
 func (ds *fileStore) PutUploadChunk(ctx context.Context, userID string, uploadID string, chunkNo int64, data []byte) error {
 	res, err := ds.database.ExecContext(ctx, insertUploadsChunks, uploadID, chunkNo, data, userID)
 	if err != nil {
@@ -198,6 +220,14 @@ func (ds *fileStore) PutUploadChunk(ctx context.Context, userID string, uploadID
 	return nil
 }
 
+// CommitUpload - вставка кусков в file_chunks и обновление версий
+// Параметры:
+//   - ctx: контекст.
+//   - userID: пользователь.
+//   - uploadID: ID загрузки.
+//   - fileID: ID файла.
+//   - expectedVersion - версия.
+//   - checkSum - checkSum.
 func (ds *fileStore) CommitUpload(ctx context.Context, userID string, uploadID string, fileID string, expectedVersion int64, checksum string) (string, int64, error) {
 	tx, err := ds.database.BeginTx(ctx, nil)
 	if err != nil {
@@ -277,6 +307,11 @@ func (ds *fileStore) CommitUpload(ctx context.Context, userID string, uploadID s
 	return sessFileID, newVersion, nil
 }
 
+// GetFileMeta - получение метаданных файла
+// Параметры:
+//   - ctx: контекст.
+//   - userID: пользователь.
+//   - fileID: ID файла.
 func (ds *fileStore) GetFileMeta(ctx context.Context, userID string, fileID string) (*model.FileMeta, error) {
 	var meta model.FileMeta
 
@@ -326,7 +361,7 @@ func (ds *fileStore) resolveVersion(ctx context.Context, userID string, fileID s
 	return version, nil
 }
 
-func (ds *fileStore) StreamFileChunks(ctx context.Context, userID string, fileID string, version int64, fn func(chunkNo int64, data []byte) error) error {
+func (ds *fileStore) streamFileChunks(ctx context.Context, userID string, fileID string, version int64, fn func(chunkNo int64, data []byte) error) error {
 	resolvedVersion, err := ds.resolveVersion(ctx, userID, fileID, version)
 	if err != nil {
 		return err
@@ -362,6 +397,12 @@ func (ds *fileStore) StreamFileChunks(ctx context.Context, userID string, fileID
 	return nil
 }
 
+// DeleteFile - пометка файла на удаление
+// Параметры:
+//   - ctx: контекст.
+//   - userID: пользователь.
+//   - fileID: ID файла.
+//   - expectedVersion: версия.
 func (ds *fileStore) DeleteFile(ctx context.Context, userID string, fileID string, expectedVersion int64) error {
 	res, err := ds.database.ExecContext(ctx, updateDeleteFiles, fileID, userID, expectedVersion)
 	if err != nil {
@@ -388,9 +429,15 @@ func (ds *fileStore) CleanupExpiredUploads(ctx context.Context) error {
 	return err
 }
 
+// Chunks - итератор для получения данных файла по кускам.
+// Параметры:
+//   - ctx: контекст.
+//   - userID: пользователь.
+//   - fileID: ID файла.
+//   - version: версия.
 func (ds *fileStore) Chunks(ctx context.Context, userID string, fileID string, version int64) iter.Seq2[*FileChunk, error] {
 	return func(yield func(*FileChunk, error) bool) {
-		err := ds.StreamFileChunks(
+		err := ds.streamFileChunks(
 			ctx,
 			userID,
 			fileID,

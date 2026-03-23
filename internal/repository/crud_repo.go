@@ -9,6 +9,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+// CRUDRepository - универсальный интерфейс для выполнения операций Create, Update, Get, Delete
 type CRUDRepository[T any] interface {
 	Create(ctx context.Context, v *T) (int64, error)
 	Get(ctx context.Context, userID, id string) (*T, error)
@@ -16,6 +17,7 @@ type CRUDRepository[T any] interface {
 	Delete(ctx context.Context, userID, id string, expectedVersion int64) error
 }
 
+// entitySpec - структура для сохранения запросов для операций.
 type entitySpec[T any] struct {
 	insertSQL string
 	selectSQL string
@@ -27,11 +29,13 @@ type entitySpec[T any] struct {
 	scanDest   func(*T) []any
 }
 
+// entitySpec - структура реализующая интерфейс CRUDRepository.
 type sqlCRUDRepo[T any] struct {
 	db   *sqlx.DB
 	spec entitySpec[T]
 }
 
+// Create - создание
 func (r sqlCRUDRepo[T]) Create(ctx context.Context, v *T) (int64, error) {
 	var version int64
 
@@ -42,6 +46,7 @@ func (r sqlCRUDRepo[T]) Create(ctx context.Context, v *T) (int64, error) {
 	return version, nil
 }
 
+// Get - получение.
 func (r sqlCRUDRepo[T]) Get(ctx context.Context, userID, id string) (*T, error) {
 	v := new(T)
 
@@ -56,6 +61,7 @@ func (r sqlCRUDRepo[T]) Get(ctx context.Context, userID, id string) (*T, error) 
 	return v, nil
 }
 
+// Update - обновление.
 func (r sqlCRUDRepo[T]) Update(ctx context.Context, v *T, expectedVersion int64) (int64, error) {
 	var newVersion int64
 
@@ -69,6 +75,7 @@ func (r sqlCRUDRepo[T]) Update(ctx context.Context, v *T, expectedVersion int64)
 	return newVersion, nil
 }
 
+// Delete - удаление.
 func (r sqlCRUDRepo[T]) Delete(ctx context.Context, userID, id string, expectedVersion int64) error {
 	res, err := r.db.ExecContext(ctx, r.spec.deleteSQL, id, userID, expectedVersion)
 	if err != nil {

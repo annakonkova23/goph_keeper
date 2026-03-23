@@ -24,6 +24,7 @@ var insertUser string = `
 	`
 var selectUserLogin string = `SELECT id, password FROM storage.users WHERE login = $1`
 
+// CreateUser - добавление в storage.users.
 func (ds *userStore) CreateUser(ctx context.Context, id, login, password string) error {
 
 	_, err := ds.database.ExecContext(ctx, insertUser, id, login, password)
@@ -39,6 +40,7 @@ func (ds *userStore) CreateUser(ctx context.Context, id, login, password string)
 	return nil
 }
 
+// GetUserByLogin - получение пользователя по логину.
 func (ds *userStore) GetUserByLogin(ctx context.Context, loginSrc string) (string, string, error) {
 	var id, password string
 
