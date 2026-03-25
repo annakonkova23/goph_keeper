@@ -7,7 +7,16 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jmoiron/sqlx"
 )
+
+type userStore struct {
+	database *sqlx.DB
+}
+
+func newUsersRepo(db *sqlx.DB) UserStore {
+	return &userStore{database: db}
+}
 
 var insertUser string = `
 		INSERT INTO storage.users (id, login, password)
@@ -15,7 +24,8 @@ var insertUser string = `
 	`
 var selectUserLogin string = `SELECT id, password FROM storage.users WHERE login = $1`
 
-func (ds *DBStore) CreateUser(ctx context.Context, id, login, password string) error {
+// CreateUser - добавление в storage.users.
+func (ds *userStore) CreateUser(ctx context.Context, id, login, password string) error {
 
 	_, err := ds.database.ExecContext(ctx, insertUser, id, login, password)
 	if err != nil {
@@ -30,7 +40,8 @@ func (ds *DBStore) CreateUser(ctx context.Context, id, login, password string) e
 	return nil
 }
 
-func (ds *DBStore) GetUserByLogin(ctx context.Context, loginSrc string) (string, string, error) {
+// GetUserByLogin - получение пользователя по логину.
+func (ds *userStore) GetUserByLogin(ctx context.Context, loginSrc string) (string, string, error) {
 	var id, password string
 
 	err := ds.database.QueryRowxContext(ctx, selectUserLogin, loginSrc).Scan(&id, &password)

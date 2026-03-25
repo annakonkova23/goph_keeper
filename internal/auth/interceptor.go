@@ -1,3 +1,29 @@
+// Package auth предоставляет gRPC-интерцепторы для проверки JWT-токенов.
+//
+// Интерцепторы используются для защиты приватных методов, позволяя доступ
+// только авторизованным пользователям. Публичные методы (например, регистрация и вход)
+// исключаются из проверки.
+//
+// Поддерживает:
+//   - Универсальные (unary) и потоковые (stream) RPC.
+//   - Извлечение userID из токена и сохранение его в контексте.
+//   - Проверку заголовка "authorization: Bearer <token>".
+//
+// Пример использования:
+//
+//	jwtManager := auth.NewJWTManager("secret", 24*time.Hour)
+//	interceptor := auth.UnaryAuthInterceptor(jwtManager)
+//
+//	grpcServer := grpc.NewServer(
+//	    grpc.UnaryInterceptor(interceptor),
+//	)
+//
+// В защищённых хендлерах можно получить userID:
+//
+//	userID, ok := ctx.Value(auth.UserIDKey).(string)
+//	if !ok {
+//	    return status.Error(codes.Unauthenticated, "пользователь не авторизован")
+//	}
 package auth
 
 import (
@@ -12,8 +38,35 @@ import (
 
 type contextKey string
 
+// UserIDKey — ключ для хранения userID в контексте.
+// Используется в обработчиках для извлечения идентификатора пользователя.
+//
+// Пример:
+//
+//	userID, ok := ctx.Value(auth.UserIDKey).(string)
 const UserIDKey contextKey = "userID"
 
+// UnaryAuthInterceptor возвращает gRPC-интерцептор для unary-запросов,
+// который проверяет наличие и валидность JWT-токена в заголовке authorization.
+//
+// Публичные методы (например, /api.AuthService/Login) пропускаются без проверки.
+//
+// Этапы работы:
+//  1. Проверяет, является ли метод публичным.
+//  2. Извлекает metadata из контекста.
+//  3. Парсит заголовок "authorization: Bearer <token>".
+//  4. Проверяет токен с помощью jwtManager.Verify.
+//  5. Добавляет userID в контекст.
+//
+// Возвращает:
+//   - codes.Unauthenticated, если:
+//   - нет metadata,
+//   - нет токена,
+//   - токен невалиден.
+//
+// Пример заголовка:
+//
+//	authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 func UnaryAuthInterceptor(jwtManager *JWTManager) grpc.UnaryServerInterceptor {
 	publicMethods := map[string]bool{
 		"/api.AuthService/Register": true,
@@ -55,6 +108,17 @@ func UnaryAuthInterceptor(jwtManager *JWTManager) grpc.UnaryServerInterceptor {
 	}
 }
 
+// StreamAuthInterceptor возвращает gRPC-интерцептор для stream-запросов.
+// Аналогичен UnaryAuthInterceptor, но работает с потоковыми соединениями.
+//
+// Оборачивает ServerStream, чтобы внедрить обновлённый контекст с userID.
+//
+// Публичные методы пропускаются без проверки.
+//
+// Возвращает ошибку codes.Unauthenticated при:
+//   - отсутствии metadata,
+//   - отсутствии или неверном формате токена,
+//   - невалидном JWT.
 func StreamAuthInterceptor(jwtManager *JWTManager) grpc.StreamServerInterceptor {
 	publicMethods := map[string]bool{
 		"/api.AuthService/Register": true,
@@ -104,11 +168,18 @@ func StreamAuthInterceptor(jwtManager *JWTManager) grpc.StreamServerInterceptor 
 	}
 }
 
+// serverStreamWrapper оборачивает grpc.ServerStream,
+// чтобы заменить контекст с внедрённым userID.
+//
+// Используется в StreamAuthInterceptor для передачи
+// аутентифицированного контекста в обработчик.
 type serverStreamWrapper struct {
 	grpc.ServerStream
 	ctx context.Context
 }
 
+// Context возвращает контекст с внедрённым userID.
+// Переопределяет стандартный метод ServerStream.Context().
 func (w *serverStreamWrapper) Context() context.Context {
 	return w.ctx
 }

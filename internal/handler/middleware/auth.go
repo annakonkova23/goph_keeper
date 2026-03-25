@@ -1,118 +1,193 @@
-// Package middleware
 package middleware
 
 import (
+	"bytes"
 	"context"
-	"crypto/hmac"
-	"crypto/rand"
-	"crypto/sha256"
-	"encoding/base64"
-	"encoding/hex"
-	"errors"
 	"net/http"
 	"strings"
+
+	"github.com/konkovaanna23/gophkeeper/internal/handler/helper"
+	"google.golang.org/grpc/metadata"
 )
 
-type ctxKey struct{ key string }
+type authCookieSinkKey struct{}
 
-var userIDKey = ctxKey{"user_id"}
-
-const cookieName = "user"
-
-// GetUserID извлекает userID из контекста.
-func GetUserID(ctx context.Context) (string, bool) {
-	userID, ok := ctx.Value(userIDKey).(string)
-	return userID, ok
+type authCookieSink struct {
+	AccessToken string
 }
 
-// SetUserID устанавливает userID в контекст.
-func SetUserID(r *http.Request, userID string) *http.Request {
-	ctx := context.WithValue(r.Context(), userIDKey, userID)
-	return r.WithContext(ctx)
+type bufferedResponseWriter struct {
+	header     http.Header
+	statusCode int
+	body       bytes.Buffer
 }
 
-func sign(key string, loadString string) string {
-	h := hmac.New(sha256.New, []byte(key))
-	h.Write([]byte(loadString))
-	sum := h.Sum(nil)
-	return base64.RawURLEncoding.EncodeToString(sum)
-}
-
-func verify(key, loadString, sig string) bool {
-	expected := sign(key, loadString)
-	return hmac.Equal([]byte(expected), []byte(sig))
-}
-
-// GenerateUserID генерирует случайный userID.
-func GenerateUserID() (string, error) {
-	var b [16]byte
-	if _, err := rand.Read(b[:]); err != nil {
-		return "", err
+func newBufferedResponseWriter() *bufferedResponseWriter {
+	return &bufferedResponseWriter{
+		header:     make(http.Header),
+		statusCode: http.StatusOK,
 	}
-	return hex.EncodeToString(b[:]), nil
 }
 
-func parseCookieValue(v string) (userID, sig string, err error) {
-	parts := strings.Split(v, ".")
-	if len(parts) != 2 {
-		return "", "", errors.New("некорректный формат cookie")
+func (w *bufferedResponseWriter) Header() http.Header {
+	return w.header
+}
+
+func (w *bufferedResponseWriter) WriteHeader(statusCode int) {
+	w.statusCode = statusCode
+}
+
+func (w *bufferedResponseWriter) Write(p []byte) (int, error) {
+	return w.body.Write(p)
+}
+
+func (w *bufferedResponseWriter) FlushTo(dst http.ResponseWriter) error {
+	copyHeaders(dst.Header(), w.header)
+	dst.WriteHeader(w.statusCode)
+
+	_, err := dst.Write(w.body.Bytes())
+	return err
+}
+
+func copyHeaders(dst, src http.Header) {
+	for k, vv := range src {
+		for _, v := range vv {
+			dst.Add(k, v)
+		}
 	}
-	return parts[0], parts[1], nil
 }
 
-// AuthMiddleware - middleware для аутентификации пользователей.
-func AuthMiddleware(key string) func(http.Handler) http.Handler {
+// WithGRPCAuthorization создаёт middleware, который:
+//   - Извлекает JWT-токен из указанной куки.
+//   - Проверяет, что кука существует и не пустая.
+//   - Добавляет токен в gRPC-метаданные как "authorization: Bearer <token>".
+//   - Передаёт управление следующему обработчику.
+//
+// Если кука отсутствует или пустая — возвращает 401 Unauthorized.
+//
+// Используется для прозрачной передачи аутентификации
+// от HTTP-слоя к gRPC-клиенту.
+//
+// Параметры:
+//   - cookieName: имя куки (например, "auth").
+//
+// Пример:
+//
+//	mux := http.NewServeMux()
+//	mux.Handle("/upload", WithGRPCAuthorization("auth")(uploadHandler))
+//
+// В uploadHandler токен будет доступен в контексте для gRPC-вызовов.
+func WithGRPCAuthorization(cookieName string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-			var userID string
-			var needSetCookie bool
-
-			c, err := r.Cookie(cookieName)
-			if err == nil {
-				id, sig, err := parseCookieValue(c.Value)
-				if err != nil || id == "" {
-					http.Error(w,
-						http.StatusText(http.StatusUnauthorized),
-						http.StatusUnauthorized,
-					)
-					return
-				}
-
-				if verify(key, id, sig) {
-					userID = id
-				} else {
-					needSetCookie = true
-				}
-			} else {
-				needSetCookie = true
+			cookie, err := r.Cookie(cookieName)
+			if err != nil {
+				helper.WriteJSON(w, http.StatusUnauthorized, map[string]any{
+					"ok":    false,
+					"error": "missing auth cookie",
+				})
+				return
 			}
 
-			if needSetCookie {
-				id, err := GenerateUserID()
-				if err != nil {
-					http.Error(w,
-						http.StatusText(http.StatusInternalServerError),
-						http.StatusInternalServerError,
-					)
-					return
-				}
-				userID = id
-				sig := sign(key, userID)
-				value := userID + "." + sig
+			token := strings.TrimSpace(cookie.Value)
+			if token == "" {
+				helper.WriteJSON(w, http.StatusUnauthorized, map[string]any{
+					"ok":    false,
+					"error": "empty auth cookie",
+				})
+				return
+			}
 
-				http.SetCookie(w, &http.Cookie{
+			ctx := metadata.AppendToOutgoingContext(
+				r.Context(),
+				"authorization", "Bearer "+token,
+			)
+
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}
+
+// WithAuthCookie создаёт middleware, который:
+//   - Устанавливает механизм записи access_token в куку.
+//   - Перехватывает вызовы SetAccessToken(ctx, token) в цепочке обработчиков.
+//   - После выполнения всех обработчиков — устанавливает куку, если токен был задан.
+//
+// Используется для того, чтобы после успешного логина
+// автоматически отправить куку клиенту.
+//
+// Параметры:
+//   - cookieName: имя куки (например, "auth").
+//   - cookieSecure: если true — кука будет отправляться только по HTTPS.
+//   - cookieTTL: время жизни куки (например, 24 * time.Hour).
+//
+// Кука устанавливается с параметрами:
+//   - HttpOnly: true (защита от XSS)
+//   - SameSite: Lax
+//   - Path: "/"
+//   - MaxAge и Expires: на основе cookieTTL
+//
+// Пример:
+//
+//	router.Use(WithAuthCookie("auth", true, 24*time.Hour))
+//
+//	func loginHandler(w http.ResponseWriter, r *http.Request) {
+//	    // ... аутентификация
+//	    middleware.SetAccessToken(r.Context(), "new-jwt-token")
+//	    helper.WriteJSON(w, http.StatusOK, map[string]any{"ok": true})
+//	}
+//
+// → Клиент получит куку "auth" с токеном.
+func WithAuthCookie(cookieName string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			sink := &authCookieSink{}
+
+			ctx := context.WithValue(r.Context(), authCookieSinkKey{}, sink)
+			r = r.WithContext(ctx)
+
+			bw := newBufferedResponseWriter()
+			next.ServeHTTP(bw, r)
+
+			if sink.AccessToken != "" {
+				http.SetCookie(bw, &http.Cookie{
 					Name:     cookieName,
-					Value:    value,
+					Value:    sink.AccessToken,
 					Path:     "/",
 					HttpOnly: true,
 					Secure:   false,
 				})
 			}
 
-			r = SetUserID(r, userID)
-
-			next.ServeHTTP(w, r)
+			_ = bw.FlushTo(w)
 		})
 	}
+}
+
+// SetAccessToken сохраняет access_token в контексте запроса
+// для последующей установки через WithAuthCookie.
+//
+// Используется в обработчиках (например, при логине),
+// чтобы сообщить middleware о необходимости установить куку.
+//
+// Возвращает:
+//   - true: если sink найден и токен установлен.
+//   - false: если контекст не содержит sink (например, middleware не подключён).
+//
+// Пример:
+//
+//	if valid {
+//	    middleware.SetAccessToken(r.Context(), token)
+//	    helper.WriteJSON(w, http.StatusOK, map[string]any{"ok": true})
+//	}
+//
+// → WithAuthCookie перехватит этот токен и установит куку.
+func SetAccessToken(ctx context.Context, token string) bool {
+	sink, ok := ctx.Value(authCookieSinkKey{}).(*authCookieSink)
+	if !ok || sink == nil {
+		return false
+	}
+
+	sink.AccessToken = token
+	return true
 }

@@ -46,7 +46,7 @@ func main() {
 
 	errCh := make(chan error, 1)
 
-	cfg := config.GetConfig()
+	cfg := config.GetConfigServer()
 	database, err := db.NewConnect(cfg.DSN)
 	if err != nil {
 		logger.Fatal("ошибка при подключении к базе данных:", zap.Error(err))
@@ -66,7 +66,8 @@ func main() {
 	}
 	if cfg.GrpcServer != "" {
 		go func() {
-			storageServer := service.NewStorageServer(logger, repo, key)
+			storageServer := service.NewStorageServer(logger, repo, key, cfg.DeleteFileTimeout)
+			storageServer.StartOfServiceProcesses(ctx)
 			authServer := service.NewAuthServer(logger, repo, jwtManager)
 			errCh <- startGrpcServer(logger, cfg.GrpcServer, authServer, storageServer, auth.UnaryAuthInterceptor(jwtManager), auth.StreamAuthInterceptor(jwtManager))
 		}()

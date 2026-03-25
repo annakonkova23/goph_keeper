@@ -5,9 +5,25 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"iter"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/konkovaanna23/gophkeeper/internal/model"
 )
+
+type fileStore struct {
+	database *sqlx.DB
+}
+
+// FileChunk
+type FileChunk struct {
+	ChunkNo int64
+	Data    []byte
+}
+
+func newFilesRepo(db *sqlx.DB) FileStore {
+	return &fileStore{database: db}
+}
 
 var insertFiles string = `
 	INSERT INTO storage.files(id, user_id, current_version)
@@ -124,7 +140,16 @@ var updateDeleteFiles string = `
 		  AND deleted_at IS NULL
 	`
 
-func (ds *DBStore) StartUpload(ctx context.Context, userID string, fileID string, expectedVersion int64, filename string, meta map[string]string, newID func() string) (string, string, error) {
+// StartUpload - начало загрузки файла, добавлет строки в files и uploads.
+// Параметры:
+//   - ctx: контекст.
+//   - userID: пользователь.
+//   - fileID: ID файла на сервере.
+//   - expectedVersion: версия файла.
+//   - filename - имя файла.
+//   - meta - информация о файле
+//   - newID - функция для формирования ID
+func (ds *fileStore) StartUpload(ctx context.Context, userID string, fileID string, expectedVersion int64, filename string, meta map[string]string, newID func() string) (string, string, error) {
 	var uploadID, outFileID string
 	metaJSON, err := json.Marshal(meta)
 	if err != nil {
@@ -149,10 +174,10 @@ func (ds *DBStore) StartUpload(ctx context.Context, userID string, fileID string
 	} else {
 		var dummy int
 		err = tx.QueryRowContext(ctx, checkFiles, outFileID, userID).Scan(&dummy)
-		if errors.Is(err, sql.ErrNoRows) {
-			return "", "", ErrorNotContent
-		}
 		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return "", "", ErrorNotContent
+			}
 			return "", "", err
 		}
 	}
@@ -171,7 +196,14 @@ func (ds *DBStore) StartUpload(ctx context.Context, userID string, fileID string
 	return uploadID, outFileID, nil
 }
 
-func (ds *DBStore) PutUploadChunk(ctx context.Context, userID string, uploadID string, chunkNo int64, data []byte) error {
+// PutUploadChunk - вставка кусков в upload_chunks
+// Параметры:
+//   - ctx: контекст.
+//   - userID: пользователь.
+//   - uploadID: ID загрузки.
+//   - chunkNo - номер куска.
+//   - data - данные.
+func (ds *fileStore) PutUploadChunk(ctx context.Context, userID string, uploadID string, chunkNo int64, data []byte) error {
 	res, err := ds.database.ExecContext(ctx, insertUploadsChunks, uploadID, chunkNo, data, userID)
 	if err != nil {
 		return err
@@ -188,7 +220,15 @@ func (ds *DBStore) PutUploadChunk(ctx context.Context, userID string, uploadID s
 	return nil
 }
 
-func (ds *DBStore) CommitUpload(ctx context.Context, userID string, uploadID string, fileID string, expectedVersion int64, checksum string) (string, int64, error) {
+// CommitUpload - вставка кусков в file_chunks и обновление версий
+// Параметры:
+//   - ctx: контекст.
+//   - userID: пользователь.
+//   - uploadID: ID загрузки.
+//   - fileID: ID файла.
+//   - expectedVersion - версия.
+//   - checkSum - checkSum.
+func (ds *fileStore) CommitUpload(ctx context.Context, userID string, uploadID string, fileID string, expectedVersion int64, checksum string) (string, int64, error) {
 	tx, err := ds.database.BeginTx(ctx, nil)
 	if err != nil {
 		return "", 0, err
@@ -267,7 +307,12 @@ func (ds *DBStore) CommitUpload(ctx context.Context, userID string, uploadID str
 	return sessFileID, newVersion, nil
 }
 
-func (ds *DBStore) GetFileMeta(ctx context.Context, userID string, fileID string) (*model.FileMeta, error) {
+// GetFileMeta - получение метаданных файла
+// Параметры:
+//   - ctx: контекст.
+//   - userID: пользователь.
+//   - fileID: ID файла.
+func (ds *fileStore) GetFileMeta(ctx context.Context, userID string, fileID string) (*model.FileMeta, error) {
 	var meta model.FileMeta
 
 	err := ds.database.QueryRowContext(ctx, selectFiles, fileID, userID).Scan(
@@ -288,7 +333,7 @@ func (ds *DBStore) GetFileMeta(ctx context.Context, userID string, fileID string
 	return &meta, nil
 }
 
-func (ds *DBStore) resolveVersion(ctx context.Context, userID string, fileID string, version int64) (int64, error) {
+func (ds *fileStore) resolveVersion(ctx context.Context, userID string, fileID string, version int64) (int64, error) {
 	if version == 0 {
 		var currentVersion int64
 		err := ds.database.QueryRowContext(ctx, selectCurrentVersion, fileID, userID).Scan(&currentVersion)
@@ -316,7 +361,7 @@ func (ds *DBStore) resolveVersion(ctx context.Context, userID string, fileID str
 	return version, nil
 }
 
-func (ds *DBStore) StreamFileChunks(ctx context.Context, userID string, fileID string, version int64, fn func(chunkNo int64, data []byte) error) error {
+func (ds *fileStore) streamFileChunks(ctx context.Context, userID string, fileID string, version int64, fn func(chunkNo int64, data []byte) error) error {
 	resolvedVersion, err := ds.resolveVersion(ctx, userID, fileID, version)
 	if err != nil {
 		return err
@@ -352,7 +397,13 @@ func (ds *DBStore) StreamFileChunks(ctx context.Context, userID string, fileID s
 	return nil
 }
 
-func (ds *DBStore) DeleteFile(ctx context.Context, userID string, fileID string, expectedVersion int64) error {
+// DeleteFile - пометка файла на удаление
+// Параметры:
+//   - ctx: контекст.
+//   - userID: пользователь.
+//   - fileID: ID файла.
+//   - expectedVersion: версия.
+func (ds *fileStore) DeleteFile(ctx context.Context, userID string, fileID string, expectedVersion int64) error {
 	res, err := ds.database.ExecContext(ctx, updateDeleteFiles, fileID, userID, expectedVersion)
 	if err != nil {
 		return err
@@ -369,11 +420,41 @@ func (ds *DBStore) DeleteFile(ctx context.Context, userID string, fileID string,
 	return nil
 }
 
-func (ds *DBStore) CleanupExpiredUploads(ctx context.Context) error {
+func (ds *fileStore) CleanupExpiredUploads(ctx context.Context) error {
 	_, err := ds.database.ExecContext(ctx, `
 		DELETE FROM uploads
 		WHERE status = 'pending'
 		  AND created_at < now() - interval '24 hours'
 	`)
 	return err
+}
+
+// Chunks - итератор для получения данных файла по кускам.
+// Параметры:
+//   - ctx: контекст.
+//   - userID: пользователь.
+//   - fileID: ID файла.
+//   - version: версия.
+func (ds *fileStore) Chunks(ctx context.Context, userID string, fileID string, version int64) iter.Seq2[*FileChunk, error] {
+	return func(yield func(*FileChunk, error) bool) {
+		err := ds.streamFileChunks(
+			ctx,
+			userID,
+			fileID,
+			version,
+			func(chunkNo int64, data []byte) error {
+				if !yield(&FileChunk{
+					ChunkNo: chunkNo,
+					Data:    data,
+				}, nil) {
+					return context.Canceled
+				}
+				return nil
+			},
+		)
+
+		if err != nil && !errors.Is(err, context.Canceled) {
+			yield(nil, err)
+		}
+	}
 }

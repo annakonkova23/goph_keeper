@@ -1,82 +1,101 @@
 syntax = "proto3";
 
-
+// Импорт timestamp для хранения времени обновления
 import "google/protobuf/timestamp.proto";
 
+// Пакет: api — определяет gRPC-сервисы для аутентификации и хранения данных.
+//
+// Содержит:
+//   - AuthService: регистрация и вход пользователей.
+//   - StorageService: CRUD для защищённых данных (логины, тексты, карты, файлы).
+//
+// Опция go_package указывает путь для генерации Go-кода.
 package api;
 
 option go_package = "github.com/konkovaanna23/gophkeeper/pkg/keeperservice";
 
+// ====================
+// АУТЕНТИФИКАЦИЯ
+// ====================
+
+// RegisterRequest — запрос на регистрацию нового пользователя.
 message RegisterRequest {
+  // login — уникальный логин (например, email).
   string login = 1;
+  // password — пароль в открытом виде (шифруется на сервере).
   string password = 2;
 }
 
+// RegisterResponse — ответ на регистрацию.
 message RegisterResponse {
+  // user_id — уникальный идентификатор созданного пользователя.
   string user_id = 1;
 }
 
+// LoginRequest — запрос на вход в систему.
 message LoginRequest {
+  // login — логин пользователя.
   string login = 1;
+  // password — пароль.
   string password = 2;
 }
 
+// LoginResponse — ответ на успешный вход.
 message LoginResponse {
+  // access_token — JWT-токен для доступа к защищённым методам.
   string access_token = 1;
 }
 
+// AuthService — предоставляет методы регистрации и аутентификации.
 service AuthService {
+  // Register создаёт нового пользователя.
+  // Возвращает user_id при успехе.
   rpc Register(RegisterRequest) returns (RegisterResponse);
+
+  // Login проверяет логин и пароль.
+  // Возвращает access_token при успехе.
   rpc Login(LoginRequest) returns (LoginResponse);
 }
 
+// ====================
+// ТИПЫ ДАННЫХ: АВТОРИЗАЦИЯ
+// ====================
+
+// AuthInfo — данные учётной записи (логин/пароль).
 message AuthInfo {
+  // login — логин (например, email).
   string login = 1;
+  // password — пароль (зашифрован на клиенте или сервере).
   string password = 2;
+  // meta — произвольные метаданные (например, "название", "источник").
   map<string, string> meta = 3;
 }
 
+// StoredAuthInfo — сохранённая запись с версией и временем обновления.
 message StoredAuthInfo {
+  // id — уникальный идентификатор записи.
   string id = 1;
+  // data — содержимое записи.
   AuthInfo data = 2;
+  // version — номер версии (для контроля конфликтов при обновлении).
   int64 version = 3;
+  // updated_at — время последнего обновления.
   google.protobuf.Timestamp updated_at = 4;
 }
 
+// ====================
+// ТИПЫ ДАННЫХ: ТЕКСТ
+// ====================
 
-
-message CreateInfoResponse {
-  string id = 1;
-  int64 version = 2;
-}
-
-message GetInfoRequest {
-  string id = 1;
-}
-
-message UpdateAuthInfoRequest {
-  string id = 1;
-  AuthInfo data = 2;
-  int64 version = 3; 
-}
-
-message UpdateInfoResponse {
-  int64 new_version = 1;
-}
-
-message DeleteInfoRequest {
-  string id = 1;
-  int64 version = 2;
-}
-
-message DeleteInfoResponse {}
-
-
+// TextInfo — текстовая заметка.
 message TextInfo {
-  string text=2;
+  // text — содержимое текста.
+  string text = 2;
+  // meta — дополнительные метаданные.
   map<string, string> meta = 3;
 }
 
+// StoredTextInfo — сохранённая текстовая запись.
 message StoredTextInfo {
   string id = 1;
   TextInfo data = 2;
@@ -84,22 +103,25 @@ message StoredTextInfo {
   google.protobuf.Timestamp updated_at = 4;
 }
 
+// ====================
+// ТИПЫ ДАННЫХ: БАНКОВСКАЯ КАРТА
+// ====================
 
-message UpdateTextInfoRequest {
-  string id = 1;
-  TextInfo data = 2;
-  int64 version = 3; 
-}
-
-
+// BankCardDetails — данные банковской карты.
 message BankCardDetails {
-  string number=1;
-  uint32 expMonth=2;
-  uint32 expYear=3;
-  string owner=4;
+  // number — номер карты (зашифрован).
+  string number = 1;
+  // expMonth — месяц истечения срока действия (1–12).
+  uint32 expMonth = 2;
+  // expYear — год истечения (например, 2028).
+  uint32 expYear = 3;
+  // owner — имя держателя карты.
+  string owner = 4;
+  // meta — метаданные (например, "банк", "тип").
   map<string, string> meta = 6;
 }
 
+// StoredBankCardDetails — сохранённая запись о карте.
 message StoredBankCardDetails {
   string id = 1;
   BankCardDetails data = 2;
@@ -107,48 +129,70 @@ message StoredBankCardDetails {
   google.protobuf.Timestamp updated_at = 4;
 }
 
-message UpdateBankCardDetailsRequest {
-  string id = 1;
-  BankCardDetails data = 2;
-  int64 version = 3; 
-}
+// ====================
+// ФАЙЛЫ
+// ====================
 
+// StartUploadRequest — запрос на начало загрузки файла.
 message StartUploadRequest {
-  string file_id = 1;    
-  int64 version = 2;  
+  // file_id — идентификатор файла. Если пустой — создаётся новый.
+  string file_id = 1;
+  // version — ожидаемая версия (0 для создания). Защита от гонок.
+  int64 version = 2;
+  // filename — имя файла (клиентское).
   string filename = 3;
+  // meta — метаданные файла.
   map<string, string> meta = 4;
 }
 
+// StartUploadResponse — ответ на начало загрузки.
 message StartUploadResponse {
+  // upload_id — идентификатор сессии загрузки.
   string upload_id = 1;
+  // file_id — итоговый идентификатор файла (новый или существующий).
   string file_id = 2;
 }
 
+// UploadChunkRequest — потоковый запрос с частью файла.
 message UploadChunkRequest {
+  // upload_id — идентификатор сессии загрузки.
   string upload_id = 1;
+  // chunk_no — порядковый номер части (начинается с 0).
   int64 chunk_no = 2;
+  // data — бинарные данные части файла.
   bytes data = 3;
 }
 
+// UploadChunksResponse — результат загрузки всех частей.
 message UploadChunksResponse {
   string upload_id = 1;
+  // received_chunks — количество полученных частей.
   int64 received_chunks = 2;
+  // total_bytes — общий объём данных.
   int64 total_bytes = 3;
 }
 
+// CommitUploadRequest — финализация загрузки.
 message CommitUploadRequest {
+  // upload_id — сессия загрузки.
   string upload_id = 1;
+  // file_id — идентификатор файла (опционально, если не указан в StartUpload).
   string file_id = 2;
+  // version — ожидаемая версия (для защиты от перезаписи).
   int64 version = 3;
-  string checksum = 4; 
+  // checksum — хэш файла (например, SHA256) для проверки целостности.
+  string checksum = 4;
 }
 
+// CommitUploadResponse — результат финализации.
 message CommitUploadResponse {
+  // file_id — идентификатор файла.
   string file_id = 1;
+  // new_version — новая версия файла.
   int64 new_version = 2;
 }
 
+// FileMeta — метаданные файла.
 message FileMeta {
   string file_id = 1;
   int64 current_version = 2;
@@ -158,54 +202,131 @@ message FileMeta {
   map<string, string> meta = 6;
 }
 
+// GetFileMetaRequest — запрос метаданных файла.
 message GetFileMetaRequest {
   string file_id = 1;
 }
 
+// GetFileMetaResponse — ответ с метаданными.
 message GetFileMetaResponse {
   FileMeta file = 1;
 }
 
+// DownloadFileRequest — запрос на скачивание файла.
 message DownloadFileRequest {
   string file_id = 1;
+  // version — версия файла. 0 = последняя.
   int64 version = 2;
 }
 
+// DownloadFileChunk — потоковый ответ с частью файла.
 message DownloadFileChunk {
   int64 chunk_no = 1;
   bytes data = 2;
 }
 
+// DeleteFileRequest — запрос на удаление файла.
 message DeleteFileRequest {
   string file_id = 1;
+  // version — текущая версия (защита от удаления устаревшей версии).
   int64 version = 2;
 }
 
+// ====================
+// ОБЩИЕ ТИПЫ
+// ====================
 
+// CreateInfoResponse — ответ на создание любой записи.
+message CreateInfoResponse {
+  // id — идентификатор созданной записи.
+  string id = 1;
+  // version — начальная версия (обычно 1).
+  int64 version = 2;
+}
 
+// GetInfoRequest — запрос на получение записи по ID.
+message GetInfoRequest {
+  string id = 1;
+}
+
+// UpdateAuthInfoRequest — обновление записи AuthInfo.
+message UpdateAuthInfoRequest {
+  string id = 1;
+  AuthInfo data = 2;
+  // version — текущая версия записи (защита от конфликтов).
+  int64 version = 3;
+}
+
+// UpdateTextInfoRequest — обновление текстовой записи.
+message UpdateTextInfoRequest {
+  string id = 1;
+  TextInfo data = 2;
+  int64 version = 3;
+}
+
+// UpdateBankCardDetailsRequest — обновление данных карты.
+message UpdateBankCardDetailsRequest {
+  string id = 1;
+  BankCardDetails data = 2;
+  int64 version = 3;
+}
+
+// UpdateInfoResponse — результат обновления.
+message UpdateInfoResponse {
+  // new_version — новая версия записи.
+  int64 new_version = 1;
+}
+
+// DeleteInfoRequest — запрос на удаление записи.
+message DeleteInfoRequest {
+  string id = 1;
+  // version — текущая версия (опционально, если используется soft delete).
+  int64 version = 2;
+}
+
+// DeleteInfoResponse — подтверждение удаления (пустое).
+message DeleteInfoResponse {}
+
+// ====================
+// STORAGE SERVICE
+// ====================
+
+// StorageService — основной сервис для хранения зашифрованных данных.
+//
+// Поддерживает:
+//   - CRUD для трёх типов данных: AuthInfo, TextInfo, BankCardDetails.
+//   - Загрузку и скачивание файлов через стриминг.
+//   - Контроль версий (optimistic locking).
 service StorageService {
+  // === AUTH INFO ===
   rpc CreateAuthInfo(AuthInfo) returns (CreateInfoResponse);
   rpc GetAuthInfo(GetInfoRequest) returns (StoredAuthInfo);
   rpc UpdateAuthInfo(UpdateAuthInfoRequest) returns (UpdateInfoResponse);
   rpc DeleteAuthInfo(DeleteInfoRequest) returns (DeleteInfoResponse);
 
+  // === TEXT INFO ===
   rpc CreateTextInfo(TextInfo) returns (CreateInfoResponse);
   rpc GetTextInfo(GetInfoRequest) returns (StoredTextInfo);
   rpc UpdateTextInfo(UpdateTextInfoRequest) returns (UpdateInfoResponse);
   rpc DeleteTextInfo(DeleteInfoRequest) returns (DeleteInfoResponse);
-  
+
+  // === BANK CARD ===
   rpc CreateBankCardDetails(BankCardDetails) returns (CreateInfoResponse);
   rpc GetBankCardDetails(GetInfoRequest) returns (StoredBankCardDetails);
   rpc UpdateBankCardDetails(UpdateBankCardDetailsRequest) returns (UpdateInfoResponse);
   rpc DeleteBankCardDetails(DeleteInfoRequest) returns (DeleteInfoResponse);
 
-
+  // === FILES ===
+  // Начало загрузки файла.
   rpc StartUpload(StartUploadRequest) returns (StartUploadResponse);
+  // Передача частей файла (поток).
   rpc UploadChunks(stream UploadChunkRequest) returns (UploadChunksResponse);
+  // Финализация загрузки.
   rpc CommitUpload(CommitUploadRequest) returns (CommitUploadResponse);
+  // Получение метаданных файла.
   rpc GetFileMeta(GetFileMetaRequest) returns (GetFileMetaResponse);
+  // Скачивание файла (поток).
   rpc DownloadFile(DownloadFileRequest) returns (stream DownloadFileChunk);
+  // Удаление файла.
   rpc DeleteFile(DeleteFileRequest) returns (DeleteInfoResponse);
-
-
 }

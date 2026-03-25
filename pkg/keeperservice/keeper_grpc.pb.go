@@ -4,6 +4,14 @@
 // - protoc             v6.33.5
 // source: keeper.proto
 
+// Пакет: api — определяет gRPC-сервисы для аутентификации и хранения данных.
+//
+// Содержит:
+//   - AuthService: регистрация и вход пользователей.
+//   - StorageService: CRUD для защищённых данных (логины, тексты, карты, файлы).
+//
+// Опция go_package указывает путь для генерации Go-кода.
+
 package keeperservice
 
 import (
@@ -26,8 +34,14 @@ const (
 // AuthServiceClient is the client API for AuthService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// AuthService — предоставляет методы регистрации и аутентификации.
 type AuthServiceClient interface {
+	// Register создаёт нового пользователя.
+	// Возвращает user_id при успехе.
 	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
+	// Login проверяет логин и пароль.
+	// Возвращает access_token при успехе.
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 }
 
@@ -62,8 +76,14 @@ func (c *authServiceClient) Login(ctx context.Context, in *LoginRequest, opts ..
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility.
+//
+// AuthService — предоставляет методы регистрации и аутентификации.
 type AuthServiceServer interface {
+	// Register создаёт нового пользователя.
+	// Возвращает user_id при успехе.
 	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
+	// Login проверяет логин и пароль.
+	// Возвращает access_token при успехе.
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
@@ -182,24 +202,41 @@ const (
 // StorageServiceClient is the client API for StorageService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// StorageService — основной сервис для хранения зашифрованных данных.
+//
+// Поддерживает:
+//   - CRUD для трёх типов данных: AuthInfo, TextInfo, BankCardDetails.
+//   - Загрузку и скачивание файлов через стриминг.
+//   - Контроль версий (optimistic locking).
 type StorageServiceClient interface {
+	// === AUTH INFO ===
 	CreateAuthInfo(ctx context.Context, in *AuthInfo, opts ...grpc.CallOption) (*CreateInfoResponse, error)
 	GetAuthInfo(ctx context.Context, in *GetInfoRequest, opts ...grpc.CallOption) (*StoredAuthInfo, error)
 	UpdateAuthInfo(ctx context.Context, in *UpdateAuthInfoRequest, opts ...grpc.CallOption) (*UpdateInfoResponse, error)
 	DeleteAuthInfo(ctx context.Context, in *DeleteInfoRequest, opts ...grpc.CallOption) (*DeleteInfoResponse, error)
+	// === TEXT INFO ===
 	CreateTextInfo(ctx context.Context, in *TextInfo, opts ...grpc.CallOption) (*CreateInfoResponse, error)
 	GetTextInfo(ctx context.Context, in *GetInfoRequest, opts ...grpc.CallOption) (*StoredTextInfo, error)
 	UpdateTextInfo(ctx context.Context, in *UpdateTextInfoRequest, opts ...grpc.CallOption) (*UpdateInfoResponse, error)
 	DeleteTextInfo(ctx context.Context, in *DeleteInfoRequest, opts ...grpc.CallOption) (*DeleteInfoResponse, error)
+	// === BANK CARD ===
 	CreateBankCardDetails(ctx context.Context, in *BankCardDetails, opts ...grpc.CallOption) (*CreateInfoResponse, error)
 	GetBankCardDetails(ctx context.Context, in *GetInfoRequest, opts ...grpc.CallOption) (*StoredBankCardDetails, error)
 	UpdateBankCardDetails(ctx context.Context, in *UpdateBankCardDetailsRequest, opts ...grpc.CallOption) (*UpdateInfoResponse, error)
 	DeleteBankCardDetails(ctx context.Context, in *DeleteInfoRequest, opts ...grpc.CallOption) (*DeleteInfoResponse, error)
+	// === FILES ===
+	// Начало загрузки файла.
 	StartUpload(ctx context.Context, in *StartUploadRequest, opts ...grpc.CallOption) (*StartUploadResponse, error)
+	// Передача частей файла (поток).
 	UploadChunks(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[UploadChunkRequest, UploadChunksResponse], error)
+	// Финализация загрузки.
 	CommitUpload(ctx context.Context, in *CommitUploadRequest, opts ...grpc.CallOption) (*CommitUploadResponse, error)
+	// Получение метаданных файла.
 	GetFileMeta(ctx context.Context, in *GetFileMetaRequest, opts ...grpc.CallOption) (*GetFileMetaResponse, error)
+	// Скачивание файла (поток).
 	DownloadFile(ctx context.Context, in *DownloadFileRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[DownloadFileChunk], error)
+	// Удаление файла.
 	DeleteFile(ctx context.Context, in *DeleteFileRequest, opts ...grpc.CallOption) (*DeleteInfoResponse, error)
 }
 
@@ -406,24 +443,41 @@ func (c *storageServiceClient) DeleteFile(ctx context.Context, in *DeleteFileReq
 // StorageServiceServer is the server API for StorageService service.
 // All implementations must embed UnimplementedStorageServiceServer
 // for forward compatibility.
+//
+// StorageService — основной сервис для хранения зашифрованных данных.
+//
+// Поддерживает:
+//   - CRUD для трёх типов данных: AuthInfo, TextInfo, BankCardDetails.
+//   - Загрузку и скачивание файлов через стриминг.
+//   - Контроль версий (optimistic locking).
 type StorageServiceServer interface {
+	// === AUTH INFO ===
 	CreateAuthInfo(context.Context, *AuthInfo) (*CreateInfoResponse, error)
 	GetAuthInfo(context.Context, *GetInfoRequest) (*StoredAuthInfo, error)
 	UpdateAuthInfo(context.Context, *UpdateAuthInfoRequest) (*UpdateInfoResponse, error)
 	DeleteAuthInfo(context.Context, *DeleteInfoRequest) (*DeleteInfoResponse, error)
+	// === TEXT INFO ===
 	CreateTextInfo(context.Context, *TextInfo) (*CreateInfoResponse, error)
 	GetTextInfo(context.Context, *GetInfoRequest) (*StoredTextInfo, error)
 	UpdateTextInfo(context.Context, *UpdateTextInfoRequest) (*UpdateInfoResponse, error)
 	DeleteTextInfo(context.Context, *DeleteInfoRequest) (*DeleteInfoResponse, error)
+	// === BANK CARD ===
 	CreateBankCardDetails(context.Context, *BankCardDetails) (*CreateInfoResponse, error)
 	GetBankCardDetails(context.Context, *GetInfoRequest) (*StoredBankCardDetails, error)
 	UpdateBankCardDetails(context.Context, *UpdateBankCardDetailsRequest) (*UpdateInfoResponse, error)
 	DeleteBankCardDetails(context.Context, *DeleteInfoRequest) (*DeleteInfoResponse, error)
+	// === FILES ===
+	// Начало загрузки файла.
 	StartUpload(context.Context, *StartUploadRequest) (*StartUploadResponse, error)
+	// Передача частей файла (поток).
 	UploadChunks(grpc.ClientStreamingServer[UploadChunkRequest, UploadChunksResponse]) error
+	// Финализация загрузки.
 	CommitUpload(context.Context, *CommitUploadRequest) (*CommitUploadResponse, error)
+	// Получение метаданных файла.
 	GetFileMeta(context.Context, *GetFileMetaRequest) (*GetFileMetaResponse, error)
+	// Скачивание файла (поток).
 	DownloadFile(*DownloadFileRequest, grpc.ServerStreamingServer[DownloadFileChunk]) error
+	// Удаление файла.
 	DeleteFile(context.Context, *DeleteFileRequest) (*DeleteInfoResponse, error)
 	mustEmbedUnimplementedStorageServiceServer()
 }

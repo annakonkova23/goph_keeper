@@ -1,3 +1,4 @@
+// Package crypto - пакет для работы с шифрованием.
 package crypto
 
 import (
@@ -7,6 +8,7 @@ import (
 	"io"
 )
 
+// Encrypt - шифрование с помощью ключа.
 func Encrypt(plaintext, key []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
@@ -27,6 +29,7 @@ func Encrypt(plaintext, key []byte) ([]byte, error) {
 	return ciphertext, nil
 }
 
+// Decrypt - дешифрование с помощью ключа.
 func Decrypt(ciphertext, key []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
