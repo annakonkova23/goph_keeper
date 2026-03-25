@@ -1,0 +1,211 @@
+syntax = "proto3";
+
+
+import "google/protobuf/timestamp.proto";
+
+package api;
+
+option go_package = "github.com/konkovaanna23/gophkeeper/pkg/keeperservice";
+
+message RegisterRequest {
+  string login = 1;
+  string password = 2;
+}
+
+message RegisterResponse {
+  string user_id = 1;
+}
+
+message LoginRequest {
+  string login = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  string access_token = 1;
+}
+
+service AuthService {
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+  rpc Login(LoginRequest) returns (LoginResponse);
+}
+
+message AuthInfo {
+  string login = 1;
+  string password = 2;
+  map<string, string> meta = 3;
+}
+
+message StoredAuthInfo {
+  string id = 1;
+  AuthInfo data = 2;
+  int64 version = 3;
+  google.protobuf.Timestamp updated_at = 4;
+}
+
+
+
+message CreateInfoResponse {
+  string id = 1;
+  int64 version = 2;
+}
+
+message GetInfoRequest {
+  string id = 1;
+}
+
+message UpdateAuthInfoRequest {
+  string id = 1;
+  AuthInfo data = 2;
+  int64 version = 3; 
+}
+
+message UpdateInfoResponse {
+  int64 new_version = 1;
+}
+
+message DeleteInfoRequest {
+  string id = 1;
+  int64 version = 2;
+}
+
+message DeleteInfoResponse {}
+
+
+message TextInfo {
+  string text=2;
+  map<string, string> meta = 3;
+}
+
+message StoredTextInfo {
+  string id = 1;
+  TextInfo data = 2;
+  int64 version = 3;
+  google.protobuf.Timestamp updated_at = 4;
+}
+
+
+message UpdateTextInfoRequest {
+  string id = 1;
+  TextInfo data = 2;
+  int64 version = 3; 
+}
+
+
+message BankCardDetails {
+  string number=1;
+  uint32 expMonth=2;
+  uint32 expYear=3;
+  string owner=4;
+  map<string, string> meta = 6;
+}
+
+message StoredBankCardDetails {
+  string id = 1;
+  BankCardDetails data = 2;
+  int64 version = 3;
+  google.protobuf.Timestamp updated_at = 4;
+}
+
+message UpdateBankCardDetailsRequest {
+  string id = 1;
+  BankCardDetails data = 2;
+  int64 version = 3; 
+}
+
+message StartUploadRequest {
+  string file_id = 1;    
+  int64 version = 2;  
+  string filename = 3;
+  map<string, string> meta = 4;
+}
+
+message StartUploadResponse {
+  string upload_id = 1;
+  string file_id = 2;
+}
+
+message UploadChunkRequest {
+  string upload_id = 1;
+  int64 chunk_no = 2;
+  bytes data = 3;
+}
+
+message UploadChunksResponse {
+  string upload_id = 1;
+  int64 received_chunks = 2;
+  int64 total_bytes = 3;
+}
+
+message CommitUploadRequest {
+  string upload_id = 1;
+  string file_id = 2;
+  int64 version = 3;
+  string checksum = 4; 
+}
+
+message CommitUploadResponse {
+  string file_id = 1;
+  int64 new_version = 2;
+}
+
+message FileMeta {
+  string file_id = 1;
+  int64 current_version = 2;
+  string filename = 3;
+  int64 size_bytes = 4;
+  string checksum = 5;
+  map<string, string> meta = 6;
+}
+
+message GetFileMetaRequest {
+  string file_id = 1;
+}
+
+message GetFileMetaResponse {
+  FileMeta file = 1;
+}
+
+message DownloadFileRequest {
+  string file_id = 1;
+  int64 version = 2;
+}
+
+message DownloadFileChunk {
+  int64 chunk_no = 1;
+  bytes data = 2;
+}
+
+message DeleteFileRequest {
+  string file_id = 1;
+  int64 version = 2;
+}
+
+
+
+service StorageService {
+  rpc CreateAuthInfo(AuthInfo) returns (CreateInfoResponse);
+  rpc GetAuthInfo(GetInfoRequest) returns (StoredAuthInfo);
+  rpc UpdateAuthInfo(UpdateAuthInfoRequest) returns (UpdateInfoResponse);
+  rpc DeleteAuthInfo(DeleteInfoRequest) returns (DeleteInfoResponse);
+
+  rpc CreateTextInfo(TextInfo) returns (CreateInfoResponse);
+  rpc GetTextInfo(GetInfoRequest) returns (StoredTextInfo);
+  rpc UpdateTextInfo(UpdateTextInfoRequest) returns (UpdateInfoResponse);
+  rpc DeleteTextInfo(DeleteInfoRequest) returns (DeleteInfoResponse);
+  
+  rpc CreateBankCardDetails(BankCardDetails) returns (CreateInfoResponse);
+  rpc GetBankCardDetails(GetInfoRequest) returns (StoredBankCardDetails);
+  rpc UpdateBankCardDetails(UpdateBankCardDetailsRequest) returns (UpdateInfoResponse);
+  rpc DeleteBankCardDetails(DeleteInfoRequest) returns (DeleteInfoResponse);
+
+
+  rpc StartUpload(StartUploadRequest) returns (StartUploadResponse);
+  rpc UploadChunks(stream UploadChunkRequest) returns (UploadChunksResponse);
+  rpc CommitUpload(CommitUploadRequest) returns (CommitUploadResponse);
+  rpc GetFileMeta(GetFileMetaRequest) returns (GetFileMetaResponse);
+  rpc DownloadFile(DownloadFileRequest) returns (stream DownloadFileChunk);
+  rpc DeleteFile(DeleteFileRequest) returns (DeleteInfoResponse);
+
+
+}
